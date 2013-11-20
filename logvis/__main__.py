@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from parser import LogParser
 
+
 if __name__ == '__main__':
     error_fname = 'data/training_slave.aion.sarietta.log.ERROR.20131008-233011.10204'
     warning_fname = 'data/training_slave.aion.sarietta.log.WARNING.20131008-233011.10204'

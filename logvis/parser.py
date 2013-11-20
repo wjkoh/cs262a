@@ -1,7 +1,10 @@
-import json
-import re
 from datetime import datetime
 from itertools import groupby
+import json
+import re
+
+
+__all__ = ['LogParser']
 
 
 class LogParser(object):
@@ -29,9 +32,12 @@ class LogParser(object):
             parsed['type'] = log_type
             date_str = tokens[0] + ' ' + tokens[1]
             parsed['date'] = datetime.strptime(date_str, '%m%d %H:%M:%S.%f')
-            parsed['thread_id'] = int(tokens[2])  # thread id
-            parsed['filename'], parsed['line_num'] = str.split(tokens[3], ':')  # file and line
-            parsed['log_msg'] = tokens[4:]  # log message
+            parsed['thread_id'] = int(tokens[2])
+            parsed['filename'], line_num = str.split(tokens[3], ':')
+            if not line_num[-1].isdigit():  # Remove ']'
+                line_num = line_num[:-1]
+            parsed['line_num'] = int(line_num)
+            parsed['log_msg'] = tokens[4:]
             parsed_logs.append(parsed)
 
             # debug

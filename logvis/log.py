@@ -1,3 +1,6 @@
+__all__ = ['Log']
+
+
 class Log(object):
     def __init__(self, log_type, date, thread_id, filename, line_num, log_msg):
         self.log_type = log_type

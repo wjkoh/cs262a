@@ -1,2 +1,2 @@
 from log import *
-from logparser import *
+from parser import *
