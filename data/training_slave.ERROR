@@ -1,0 +1,4 @@
+Log file created at: 2013/10/08 23:59:04
+Running on machine: aion
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+E1008 23:59:04.260601 10207 training_slave.cc:1624] Couldn't load image: /srv/cluster-fs/experiments/select3_sf_theft/cutouts//negative/18BiXH3nLtqD3c92hTxa_A/pitch=-10.0_heading=200.0.jpg

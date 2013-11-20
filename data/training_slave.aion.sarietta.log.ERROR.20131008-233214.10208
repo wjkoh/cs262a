@@ -1,0 +1,7 @@
+Log file created at: 2013/10/08 23:32:14
+Running on machine: aion
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+E1008 23:32:14.790809 10208 training_slave.cc:1624] Couldn't load image: /srv/cluster-fs/experiments/select3_sf_theft/cutouts//negative/s5GKoPVQKFWgL24qFoAAjw/pitch=-10.0_heading=260.0.jpg
+E1008 23:42:11.427821 10208 training_slave.cc:1624] Couldn't load image: /srv/cluster-fs/experiments/select3_sf_theft/cutouts//negative/7rzN0TQMzF9tElBtP5On1w/pitch=30.0_heading=120.0.jpg
+E1008 23:55:34.430979 10208 training_slave.cc:1624] Couldn't load image: /srv/cluster-fs/experiments/select3_sf_theft/cutouts//negative/CGlTybQfoOx-IzOcQ9uTFg/pitch=30.0_heading=180.0.jpg
+E1008 23:58:05.725442 10208 training_slave.cc:1624] Couldn't load image: /srv/cluster-fs/experiments/select3_sf_theft/cutouts//negative/3kBU-SnbbkDDzXN4SzpqaQ/pitch=-10.0_heading=100.0.jpg
