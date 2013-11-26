@@ -1,10 +1,16 @@
+from collections import namedtuple
 from datetime import datetime
 from itertools import groupby
 import json
 import re
 
 
-__all__ = ['LogParser']
+__all__ = ['Log', 'LogParser']
+
+
+Log = namedtuple('Log',
+        ['log_type', 'log_level', 'date', 'thread_id', 'filename', 'line_num', 'log_msg',
+            'variables'])
 
 
 class LogParser(object):
@@ -20,30 +26,24 @@ class LogParser(object):
 
     def parse_str(self, raw_str):
         parsed_logs = []
-        pattern = '(^[%s])' % self.LOG_TYPES
+        pattern = '^([%s])' % self.LOG_TYPES
         l = re.split(pattern, raw_str, flags=re.MULTILINE)
-
         logs = [i for i in zip(l, l[1:]) if i[0] in self.LOG_TYPES]
 
-        for log_type, contents in logs:
-            tokens = str.split(contents)
+        parsed = {}
+        for log_level, contents in logs:
+            tokens = contents.split()
 
-            parsed = {}
-            parsed['type'] = log_type
-            date_str = tokens[0] + ' ' + tokens[1]
+            parsed['variables'] = None
+            parsed['log_level'] = log_level
+            date_str = '%s %s' % (tokens[0], tokens[1])
             parsed['date'] = datetime.strptime(date_str, '%m%d %H:%M:%S.%f')
             parsed['thread_id'] = int(tokens[2])
-            parsed['filename'], line_num = str.split(tokens[3], ':')
+            parsed['filename'], line_num = tokens[3].split(':')
             if not line_num[-1].isdigit():  # Remove ']'
                 line_num = line_num[:-1]
             parsed['line_num'] = int(line_num)
-            parsed['log_msg'] = tokens[4:]
-            parsed_logs.append(parsed)
-
-            # debug
-            print 'Raw'
-            print log_type, contents.strip()
-            print 'Parsed'
-            print parsed
-            print
+            parsed['log_msg'] = ' '.join(tokens[4:])
+            parsed['log_type'] = (parsed['filename'], parsed['line_num'])
+            parsed_logs.append(Log(**parsed))
         return parsed_logs
