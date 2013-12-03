@@ -3,6 +3,7 @@ from collections import defaultdict
 from difflib import SequenceMatcher as sm
 from itertools import groupby
 from parser import LogParser
+import csv
 
 
 def parse_num(num):
@@ -28,7 +29,8 @@ def get_common_str(log_msgs):
 
         common_str = ''
         for m in matched[:-1]:
-            common_str += i[m.b:m.b + m.size]
+            if m.b == 0 or m.b + m.size == len(i) or m.size > 1:
+                common_str += i[m.b:m.b + m.size]
     return common_str
 
 
@@ -60,7 +62,7 @@ if __name__ == '__main__':
     sorted(all_logs, lambda x, y: x.date < y.date)
 
     # To extract common strings
-    logs_by_type = defaultdict(list)
+    logs_by_type = defaultdict(list)  # log_type: (fname, lnum)
     for log in all_logs:
         logs_by_type[log.log_type].append(log)
 
@@ -74,9 +76,20 @@ if __name__ == '__main__':
         variables[log] = get_variable_str(common_strs[log.log_type], log.log_msg)
     print 'Done extracting variable strings.'
 
-    # Print out logs and their variable parts
+    if False:
+        # Print out logs and their variable parts
+        for k, v in logs_by_type.iteritems():
+            print k
+            for log in v:
+                print variables[log], log.log_msg
+            print 'Done.'
+
     for k, v in logs_by_type.iteritems():
-        print k
-        for log in v:
-            print variables[log], log.log_msg
-        print 'Done.'
+        with open('log_%s_%s.csv' % k, 'wb') as csvfile:
+            writer = csv.writer(csvfile)
+            for log in v:
+                var_str = variables[log]
+                if len(var_str) == 0:
+                    var_str = ['']
+                writer.writerow(list(k) + [log.date] + var_str + [log.log_msg])
+    print 'Done writing to CSV files.'
