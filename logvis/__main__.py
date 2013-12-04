@@ -85,11 +85,17 @@ if __name__ == '__main__':
             print 'Done.'
 
     for k, v in logs_by_type.iteritems():
+        # Check the maximum length of variable parts
+        max_var_len = 1
+        for log in v:
+            max_var_len = max(max_var_len, len(variables[log]))
+
         with open('log_%s_%s.csv' % k, 'wb') as csvfile:
             writer = csv.writer(csvfile)
+            writer.writerow(['filename', 'line_num', 'date'] + range(max_var_len) + ['log_msg'])
             for log in v:
                 var_str = variables[log]
-                if len(var_str) == 0:
-                    var_str = ['']
+                while len(var_str) < max_var_len:
+                    var_str.append('')
                 writer.writerow(list(k) + [log.date] + var_str + [log.log_msg])
     print 'Done writing to CSV files.'
