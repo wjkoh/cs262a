@@ -90,6 +90,19 @@
 </head>
 
 <body>
+    <!-- The maximum toolbox params from the data -->
+    <div id="parameters" style="display:none">
+        <input type="text" id="minTime" readonly>
+        <input type="text" id="maxTime" readonly>
+        <input type="text" id="maxSliders" readonly>
+    </div>
+    <!-- The user-selected params from the toolbox -->
+    <div id="userparameters" style="display:none">
+        <input type="text" id="userMinTime" readonly>
+        <input type="text" id="userMaxTime" readonly>
+        <input type="text" id="userMaxSliders" readonly>
+    </div>
+
     <div id="container">
         <div class="charts" style="float:left">
         </div>
@@ -100,15 +113,13 @@
             </p>
             <div id="timerange-slider"></div>
 
-            <br/><br/><br/>
             <div id="slider">
+              <br/><br/><br/>
               <label>Number of Nodes:</label>
               <input type="text" class="configtext" readonly>
               <br/><span>10</span>
 
-              <br />
-              <br />
-              <br />
+              <br /> <br /> <br />
               <label>Number of Messages:</label>
               <input type="text" class="configtext" readonly>
               <br/><span>15</span>
@@ -165,8 +176,14 @@
                         [new Data(1, 8,  0, 'm2 00'),
                          new Data(5, 6,  0, 'm2 01'),
                          new Data(10, 3, 0, 'm2 02'),
+                         new Data(19, 2, 0, 'm2 03'),
+                        ],
+
+                        [new Data(1, 8, 0 , 'm2 00'),
+                         new Data(5, 6, 0 , 'm2 01'),
+                         new Data(10, 3, 0, 'm2 02'),
                          new Data(15, 2, 0, 'm2 03'),
-                        ]
+                        ],
                        ],
                        [
                         [new Data(1, 2, 0, 'message 00'),
@@ -180,7 +197,13 @@
                          new Data(10, 12, 2, 'message 02'),
                          new Data(15, 14, 0, 'message 03'),
                          new Data(15, 17, 1, 'message 03'),
-                         new Data(15, 18, 2, 'kessage 03'),
+                         new Data(15, 18, 2, 'message 03'),
+                        ],
+
+                        [new Data(1, 8, 0 , 'm2 00'),
+                         new Data(5, 6, 0 , 'm2 01'),
+                         new Data(10, 3, 0, 'm2 02'),
+                         new Data(15, 2, 0, 'm2 03'),
                         ],
 
                         [new Data(1, 8, 0 , 'm2 00'),
@@ -190,17 +213,25 @@
                         ],
                        ],
                      ]
-        // var allData = [[[[1,1], [1,3], [5,3], [5,5], [10,17], [10,11], [15,10], [15, 19]],
-        //                 [[1,14], [3,10], [8,8], [12,3],]
-        //                ],
-        //                [
-        //                 [[1,1], [1,3], [1,5], [5,3], [5,5], [5,9], [8,17], [8,20], [8,30], [10,17], [10,7], [10,11], [15,8], [15,10], [15,19]],
-        //                 [[1,1], [2, 4], [3, 9], [4, 16]]
-        //                ]
-        //               ];
-               
+
         var numNodes = 2;
-        var numAttr = 2;
+        var numAttr = 3;
+        var maxTime = d3.max(allData, function(d) {
+                           return d3.max(d, function(d) {
+                           return d3.max(d, function(d) {
+                               return d.timestamp; }) }) });
+        var minTime = d3.min(allData, function(d) {
+                           return d3.min(d, function(d) {
+                           return d3.min(d, function(d) {
+                               return d.timestamp; }) }) });
+
+        d3.select('#minTime').attr("value", minTime)
+        d3.select('#maxTime').attr("value", maxTime)
+        d3.select('#maxSliders').attr("value", numNodes + ' ' + numAttr)
+
+        // TODO these will not exist until after the current function completes!
+        var desiredNumNodes = $($( "#slider > input" ).get(0)).val();
+        var desiredNumMessages = $($( "#slider > input" ).get(1)).val();
 
         for(var node_i = 0; node_i < numNodes; ++node_i) {
             var currRowName = 'chart_' + node_i.toString()
@@ -216,7 +247,7 @@
                   , height = 250 - margin.top - margin.bottom;
                 
                 var x = d3.scale.linear()
-                          .domain([0, d3.max(data, function(d) { return d.timestamp; })])
+                          .domain([minTime, maxTime])
                           .range([ 0, width ]);
                 
                 var y = d3.scale.linear()
@@ -279,6 +310,7 @@
                 });
             }
         }
+        createToolbox();
     </script>
 
 </body>
