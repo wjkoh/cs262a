@@ -4,21 +4,55 @@
 
 <script src="d3.v3/d3.v3.min.js" charset="utf-8"></script>
 
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+
+<script type="text/javascript" src="jquery.tipsy.js"></script>
+<script type="text/javascript" src="slider.js"></script>
+<link href="tipsy.css" rel="stylesheet" type="text/css" />
+
 <style type="text/css">                  
     body {
         background-color: #030303;
     }
 
-    .chart div {
-      font: 10px sans-serif;
-      text-align: right;
-      padding: 3px;
-      margin: 1px;
-      color: white;
+    .charts div {
+        font: 10px sans-serif;
+        text-align: right;
+        margin: 1px;
+        color: white;
+
+        border: 2px solid #dadada;
+        background-color: #000F26;
+        border-radius: 7px;
+        padding:10px;
+        margin:10px;
+    }
+
+    .configtext {
+        font: 18px sans-serif;  
+        color: white;
+        border: none;
+        background-color: #000F26;
+        padding:3px;
+        width: 90px;
+    }
+
+    .config {
+        font: 18px sans-serif;  
+        color: white;
+        border: 2px solid #dadada;
+        background-color: #000F26;
+        border-radius: 7px;
+        float:left;
+        padding:10px;
+        margin:10px;
+        margin-left:0px;
     }
 
     .main text {
-        font: 10px sans-serif;  
+        font: 18px sans-serif;  
         color: white;
     }
 
@@ -32,12 +66,65 @@
     circle {
         fill: white;
     }
+
+    .glowing-border {
+        border: 2px solid #dadada;
+        border-radius: 7px;
+    }
+
+    .glowing-border:focus { 
+        outline: none;
+        border-color: #9ecaed;
+        box-shadow: 0 0 10px #9ecaed;
+    }
+
+    #slider span, #timerange-slider {
+        float: left;
+        clear: left;
+        width: 250px;
+        height: 20px;
+        margin: 15px;
+    }
 </style>
 
 </head>
 
 <body>
-    <div class="charts">
+    <!-- The maximum toolbox params from the data -->
+    <div id="parameters" style="display:none">
+        <input type="text" id="minTime" readonly>
+        <input type="text" id="maxTime" readonly>
+        <input type="text" id="maxSliders" readonly>
+    </div>
+    <!-- The user-selected params from the toolbox -->
+    <div id="userparameters" style="display:none">
+        <input type="text" id="userMinTime" readonly>
+        <input type="text" id="userMaxTime" readonly>
+        <input type="text" id="userMaxSliders" readonly>
+    </div>
+
+    <div id="container">
+        <div class="charts" style="float:left">
+        </div>
+        <div class="config">
+            <p>
+              <label for="timerange">Time range:</label>
+              <input type="text" id="timerange" class="configtext" readonly>
+            </p>
+            <div id="timerange-slider"></div>
+
+            <div id="slider">
+              <br/><br/><br/>
+              <label>Number of Nodes:</label>
+              <input type="text" class="configtext" readonly>
+              <br/><span>10</span>
+
+              <br /> <br /> <br />
+              <label>Number of Messages:</label>
+              <input type="text" class="configtext" readonly>
+              <br/><span>15</span>
+            </div>
+        </div>
     </div>
 
     <script type="text/javascript" language="javascript">
@@ -54,6 +141,8 @@
         }
         var colors = ['548DD9', '6EC6E3', '69CCC4', '6AE3AE', '61D97B'];
         var colors = ['108F97', 'FF8B6B', 'FFE39F', '16866D', '103636'];
+        // var colors = d3.scale.category20();
+
         
         // Synthetic data for now
         function makeStruct(names) {
@@ -67,58 +156,82 @@
           return constructor;
         }
         // timestamp can have multiple values, 0..index-1
-        var Data = makeStruct('timestamp value index');
+        var Data = makeStruct('timestamp value index message');
         var allData = [
                        [
-                        [new Data(1, 0, 0),
-                         new Data(1, 1, 1),
-                         new Data(5, 3, 0),
-                         new Data(5, 5, 1),
-                         new Data(10, 11, 0),
-                         new Data(10, 17, 1),
-                         new Data(15, 10, 0),
-                         new Data(15, 19, 1),
+                        [new Data(1, 0, 0, 'message 00'),
+                         new Data(1, 1, 1, 'message 00'),
+                         new Data(1, 5, 2, 'message 00'),
+                         new Data(5, 3, 0, 'message 01'),
+                         new Data(5, 5, 1, 'message 01'),
+                         new Data(5, 9, 2, 'message 01'),
+                         new Data(10, 11, 0, 'message 02'),
+                         new Data(10, 17, 1, 'message 02'),
+                         new Data(10, 22, 2, 'message 02'),
+                         new Data(15, 10, 0, 'message 03'),
+                         new Data(15, 19, 1, 'message 03'),
+                         new Data(15, 25, 2, 'message 03'),
                         ],
 
-                        [new Data(1, 8, 0),
-                         new Data(5, 6, 0),
-                         new Data(10, 3, 0),
-                         new Data(15, 2, 0),
+                        [new Data(1, 8,  0, 'm2 00'),
+                         new Data(5, 6,  0, 'm2 01'),
+                         new Data(10, 3, 0, 'm2 02'),
+                         new Data(19, 2, 0, 'm2 03'),
+                        ],
+
+                        [new Data(1, 8, 0 , 'm2 00'),
+                         new Data(5, 6, 0 , 'm2 01'),
+                         new Data(10, 3, 0, 'm2 02'),
+                         new Data(15, 2, 0, 'm2 03'),
                         ],
                        ],
                        [
-                        [new Data(1, 2, 0),
-                         new Data(1, 4, 1),
-                         new Data(1, 7, 2),
-                         new Data(5, 3, 0),
-                         new Data(5, 6, 1),
-                         new Data(5, 8, 2),
-                         new Data(10, 8, 0),
-                         new Data(10, 10, 1),
-                         new Data(10, 12, 2),
-                         new Data(15, 14, 0),
-                         new Data(15, 17, 1),
-                         new Data(15, 18, 2),
+                        [new Data(1, 2, 0, 'message 00'),
+                         new Data(1, 4, 1, 'message 00'),
+                         new Data(1, 7, 2, 'message 00'),
+                         new Data(5, 3, 0, 'message 01'),
+                         new Data(5, 6, 1, 'message 01'),
+                         new Data(5, 8, 2, 'message 01'),
+                         new Data(10, 8, 0, 'message 02'),
+                         new Data(10, 10, 1, 'message 02'),
+                         new Data(10, 12, 2, 'message 02'),
+                         new Data(15, 14, 0, 'message 03'),
+                         new Data(15, 17, 1, 'message 03'),
+                         new Data(15, 18, 2, 'message 03'),
                         ],
 
-                        [new Data(1, 8, 0),
-                         new Data(5, 6, 0),
-                         new Data(10, 3, 0),
-                         new Data(15, 2, 0),
+                        [new Data(1, 8, 0 , 'm2 00'),
+                         new Data(5, 6, 0 , 'm2 01'),
+                         new Data(10, 3, 0, 'm2 02'),
+                         new Data(15, 2, 0, 'm2 03'),
+                        ],
+
+                        [new Data(1, 8, 0 , 'm2 00'),
+                         new Data(5, 6, 0 , 'm2 01'),
+                         new Data(10, 3, 0, 'm2 02'),
+                         new Data(15, 2, 0, 'm2 03'),
                         ],
                        ],
                      ]
-        // var allData = [[[[1,1], [1,3], [5,3], [5,5], [10,17], [10,11], [15,10], [15, 19]],
-        //                 [[1,14], [3,10], [8,8], [12,3],]
-        //                ],
-        //                [
-        //                 [[1,1], [1,3], [1,5], [5,3], [5,5], [5,9], [8,17], [8,20], [8,30], [10,17], [10,7], [10,11], [15,8], [15,10], [15,19]],
-        //                 [[1,1], [2, 4], [3, 9], [4, 16]]
-        //                ]
-        //               ];
-               
+
         var numNodes = 2;
-        var numAttr = 2;
+        var numAttr = 3;
+        var maxTime = d3.max(allData, function(d) {
+                           return d3.max(d, function(d) {
+                           return d3.max(d, function(d) {
+                               return d.timestamp; }) }) });
+        var minTime = d3.min(allData, function(d) {
+                           return d3.min(d, function(d) {
+                           return d3.min(d, function(d) {
+                               return d.timestamp; }) }) });
+
+        d3.select('#minTime').attr("value", minTime)
+        d3.select('#maxTime').attr("value", maxTime)
+        d3.select('#maxSliders').attr("value", numNodes + ' ' + numAttr)
+
+        // TODO these will not exist until after the current function completes!
+        var desiredNumNodes = $($( "#slider > input" ).get(0)).val();
+        var desiredNumMessages = $($( "#slider > input" ).get(1)).val();
 
         for(var node_i = 0; node_i < numNodes; ++node_i) {
             var currRowName = 'chart_' + node_i.toString()
@@ -134,7 +247,7 @@
                   , height = 250 - margin.top - margin.bottom;
                 
                 var x = d3.scale.linear()
-                          .domain([0, d3.max(data, function(d) { return d.timestamp; })])
+                          .domain([minTime, maxTime])
                           .range([ 0, width ]);
                 
                 var y = d3.scale.linear()
@@ -158,6 +271,7 @@
                 // draw the x axis
                 var xAxis = d3.svg.axis()
                 .scale(x)
+                .tickPadding(5)
                 .orient('bottom');
 
                 main.append('g')
@@ -168,6 +282,8 @@
                 // draw the y axis
                 var yAxis = d3.svg.axis()
                 .scale(y)
+                .tickPadding(5)
+                .ticks(5)
                 .orient('left');
 
                 main.append('g')
@@ -183,9 +299,18 @@
                       .attr("cx", function (d,i) { return x(d.timestamp); } )
                       .attr("cy", function (d) { return y(d.value); } )
                       .attr("r", 8)
-                      .style("fill", function (d,i) { return colors[d.index]; });
+                      .style("fill", function (d,i) { return colors[d.index]; })
+                      .append("svg:title")
+                      .text(function(d) { return d.message; });
+
+                $('svg circle').tipsy({ 
+                gravity: 'w', 
+                html: true, 
+                title: function() { return this.__data__.message; }
+                });
             }
         }
+        createToolbox();
     </script>
 
 </body>
