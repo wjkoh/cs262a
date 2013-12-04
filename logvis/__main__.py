@@ -92,7 +92,9 @@ if __name__ == '__main__':
 
         with open('log_%s_%s.csv' % k, 'wb') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['filename', 'line_num', 'date'] + range(max_var_len) + ['log_msg'])
+            writer.writerow(['filename', 'line_num', 'date']
+                    + ['v%d' % i for i in range(max_var_len)]
+                    + ['log_msg'])
             for log in v:
                 var_str = variables[log]
                 while len(var_str) < max_var_len:

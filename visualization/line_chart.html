@@ -32,7 +32,7 @@ var margin = {top: 20, right: 20, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-var parseDate = d3.time.format("%d-%b-%y").parse;
+var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S.%L").parse;
 
 var x = d3.time.scale()
     .range([0, width]);
@@ -58,11 +58,11 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.tsv("data.tsv", function(error, data) {
+d3.csv("data.csv", function(error, data) {
   data.forEach(function(d) {
-    console.log(d.date);
+    d.date = d.date.substring(0, d.date.length - 3);
     d.date = parseDate(d.date);
-    d.close = +d.close;
+    d.close = +d.v0;
   });
 
   x.domain(d3.extent(data, function(d) { return d.date; }));
@@ -81,7 +81,7 @@ d3.tsv("data.tsv", function(error, data) {
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("Price ($)");
+      .text("Num of Patches");
 
   svg.append("path")
       .datum(data)
