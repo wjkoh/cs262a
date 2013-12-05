@@ -1,0 +1,73 @@
+body {
+    background-color: #030303;
+}
+
+.charts div {
+    font: 10px sans-serif;
+    text-align: right;
+    margin: 1px;
+    color: white;
+
+    border: 2px solid #dadada;
+    background-color: #000F26;
+    border-radius: 7px;
+    padding:10px;
+    margin:10px;
+}
+
+.configtext {
+    font: 18px sans-serif;  
+    color: white;
+    border: none;
+    background-color: #000F26;
+    padding:3px;
+    width: 90px;
+}
+
+.config {
+    font: 18px sans-serif;  
+    color: white;
+    border: 2px solid #dadada;
+    background-color: #000F26;
+    border-radius: 7px;
+    float:right;
+    padding:10px;
+    margin:10px;
+    margin-right:10px;
+}
+
+.main text {
+    font: 18px sans-serif;  
+    color: white;
+}
+
+.axis line, .axis path {
+    color: white;
+    shape-rendering: crispEdges;
+    stroke: lightblue;
+    fill: none;
+}
+
+circle {
+    fill: white;
+}
+
+.glowing-border {
+    border: 2px solid #dadada;
+    border-radius: 7px;
+}
+
+.glowing-border:focus { 
+    outline: none;
+    border-color: #9ecaed;
+    box-shadow: 0 0 10px #9ecaed;
+}
+
+#slider span, #timerange-slider {
+    float: left;
+    clear: left;
+    width: 250px;
+    height: 20px;
+    margin: 15px;
+}
+

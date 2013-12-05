@@ -9,12 +9,10 @@ function updateParams() {
 
 // Sets up time window sliders
 function createTimeSlider() {
-  minTime = parseInt($( "#minTime" ).val(), 10);
-  maxTime = parseInt($( "#maxTime" ).val(), 10);
   $( "#timerange-slider" ).slider({
     range: true,
-    min: minTime,
-    max: maxTime,
+    min: userMinTime,
+    max: userMaxTime,
     values: [ minTime, maxTime ],
     slide: function( event, ui ) {
       $( "#timerange" ).val(ui.values[ 0 ] + " - " + ui.values[ 1 ]);
@@ -26,19 +24,17 @@ function createTimeSlider() {
 
 // Sets up num nodes / messages sliders
 function createGraphSlider() {
-  var maxes = $( "#maxSliders" ).val().split(' ');
   $( "#slider > span" ).each(function(i) {
-    // read initial values from markup and remove that
-    var value = parseInt( $( this ).text(), 10 );
     $( this ).empty().slider({
-      value: value,
+      value: maxSliders[i],
       orientation: "horizontal",
       min: 1,
-      max: parseInt(maxes[i], 10),
+      max: userSliders[i],
       animate: true,
       step: 1,
       slide: function( event, ui ) {
         $($( "#slider > input" ).get(i)).val( ui.value );
+        userSliders[i] = ui.value;
       }
     });
   });
