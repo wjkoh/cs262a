@@ -4,6 +4,8 @@ from difflib import SequenceMatcher as sm
 from itertools import groupby
 from parser import LogParser
 import csv
+import glob
+import os
 
 
 def parse_num(num):
@@ -48,56 +50,65 @@ def get_variable_str(common_str, log_msg):
 
 
 if __name__ == '__main__':
-    error_fname = 'data/training_slave.aion.sarietta.log.ERROR.20131008-233011.10204'
-    warning_fname = 'data/training_slave.aion.sarietta.log.WARNING.20131008-233011.10204'
-    info_fname = 'data/training_slave.aion.sarietta.log.INFO.20131008-232039.10204'
+    output_dir = 'parsedData/%s'
 
-    parser = LogParser()
-    errors = parser.parse_file(error_fname)
-    warnings = parser.parse_file(warning_fname)
-    infos = parser.parse_file(info_fname)
-    print 'Done parsing log files.'
+    log_fnames_by_node = defaultdict(list)
+    log_fnames = glob.glob('./data/*.log.*')
+    for log_fname in log_fnames:
+        fext = os.path.splitext(log_fname)[1][1:]
+        log_fnames_by_node[fext].append(log_fname)
 
-    all_logs = errors + warnings + infos
-    sorted(all_logs, lambda x, y: x.date < y.date)
+    for node_id, log_fnames in log_fnames_by_node.iteritems():
+        parser = LogParser()
+        all_logs = []
+        for log_fname in log_fnames:
+            all_logs.extend(parser.parse_file(log_fname))
+        print 'Done parsing log files of node %s.' % node_id
 
-    # To extract common strings
-    logs_by_type = defaultdict(list)  # log_type: (fname, lnum)
-    for log in all_logs:
-        logs_by_type[log.log_type].append(log)
+        sorted(all_logs, lambda x, y: x.date < y.date)
 
-    common_strs = {}
-    for key, logs in logs_by_type.iteritems():
-        common_strs[key] = get_common_str(frozenset([l.log_msg for l in logs]))
-    print 'Done extracting common strings.'
+        # To extract common strings
+        logs_by_type = defaultdict(list)  # log_type: (fname, lnum)
+        for log in all_logs:
+            logs_by_type[log.log_type].append(log)
 
-    variables = {}
-    for log in all_logs:
-        variables[log] = get_variable_str(common_strs[log.log_type], log.log_msg)
-    print 'Done extracting variable strings.'
+        common_strs = {}
+        for key, logs in logs_by_type.iteritems():
+            common_strs[key] = get_common_str(frozenset([l.log_msg for l in logs]))
+        print 'Done extracting common strings.'
 
-    if False:
-        # Print out logs and their variable parts
+        variables = {}
+        for log in all_logs:
+            variables[log] = get_variable_str(common_strs[log.log_type], log.log_msg)
+        print 'Done extracting variable strings.'
+
+        if False:
+            # Print out logs and their variable parts
+            for k, v in logs_by_type.iteritems():
+                print k
+                for log in v:
+                    print variables[log], log.log_msg
+                print 'Done.'
+
         for k, v in logs_by_type.iteritems():
-            print k
+            # Check the maximum length of variable parts
+            max_var_len = 1
             for log in v:
-                print variables[log], log.log_msg
-            print 'Done.'
+                max_var_len = max(max_var_len, len(variables[log]))
 
-    for k, v in logs_by_type.iteritems():
-        # Check the maximum length of variable parts
-        max_var_len = 1
-        for log in v:
-            max_var_len = max(max_var_len, len(variables[log]))
+            try:
+                os.makedirs(output_dir % node_id)
+            except OSError:
+                pass
 
-        with open('log_%s_%s.csv' % k, 'wb') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['filename', 'line_num', 'date']
-                    + ['v%d' % i for i in range(max_var_len)]
-                    + ['log_msg'])
-            for log in v:
-                var_str = variables[log]
-                while len(var_str) < max_var_len:
-                    var_str.append('')
-                writer.writerow(list(k) + [log.date] + var_str + [log.log_msg])
-    print 'Done writing to CSV files.'
+            with open(output_dir % node_id + '/log_%s_%s.csv' % k, 'wb') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(['filename', 'line_num', 'date']
+                        + ['v%d' % i for i in range(max_var_len)]
+                        + ['log_msg'])
+                for log in v:
+                    var_str = variables[log]
+                    while len(var_str) < max_var_len:
+                        var_str.append('')
+                    writer.writerow(list(k) + [log.date] + var_str + [log.log_msg])
+        print 'Done writing to CSV files.'
