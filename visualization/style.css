@@ -21,7 +21,8 @@ body {
     border: none;
     background-color: #000F26;
     padding:3px;
-    width: 90px;
+    width: 130px;
+    margin-left:20px;
 }
 
 .config {

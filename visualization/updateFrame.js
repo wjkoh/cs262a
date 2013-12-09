@@ -1,93 +1,32 @@
+var data;
+
 // For default arguments, pass in -1
 function getData(minTime, maxTime, numNodes, numMessages) {
-    var data =
-      [
-        [
-         [new Data(1, 0, 0, 'message 00'),
-          new Data(1, 1, 1, 'message 00'),
-          new Data(1, 5, 2, 'message 00'),
-          new Data(5, 3, 0, 'message 01'),
-          new Data(5, 5, 1, 'message 01'),
-          new Data(5, 9, 2, 'message 01'),
-          new Data(10, 11, 0, 'message 02'),
-          new Data(10, 17, 1, 'message 02'),
-          new Data(10, 22, 2, 'message 02'),
-          new Data(15, 10, 0, 'message 03'),
-          new Data(15, 19, 1, 'message 03'),
-          new Data(15, 25, 2, 'message 03'),
-         ],
-
-         [new Data(1, 8,  0, 'm2 00'),
-          new Data(5, 6,  0, 'm2 01'),
-          new Data(10, 3, 0, 'm2 02'),
-          new Data(19, 2, 0, 'm2 03'),
-         ],
-
-         [new Data(1, 8, 0 , 'm2 00'),
-          new Data(5, 6, 0 , 'm2 01'),
-          new Data(10, 3, 0, 'm2 02'),
-          new Data(15, 2, 0, 'm2 03'),
-         ],
-        ],
-        [
-         [new Data(1, 2, 0, 'message 00'),
-          new Data(1, 4, 1, 'message 00'),
-          new Data(1, 7, 2, 'message 00'),
-          new Data(5, 3, 0, 'message 01'),
-          new Data(5, 6, 1, 'message 01'),
-          new Data(5, 8, 2, 'message 01'),
-          new Data(10, 8, 0, 'message 02'),
-          new Data(10, 10, 1, 'message 02'),
-          new Data(10, 12, 2, 'message 02'),
-          new Data(15, 14, 0, 'message 03'),
-          new Data(15, 17, 1, 'message 03'),
-          new Data(15, 18, 2, 'message 03'),
-         ],
-
-         [new Data(1, 8, 0 , 'm2 00'),
-          new Data(5, 6, 0 , 'm2 01'),
-          new Data(10, 3, 0, 'm2 02'),
-          new Data(15, 2, 0, 'm2 03'),
-         ],
-
-         [new Data(1, 8, 0 , 'm2 00'),
-          new Data(5, 6, 0 , 'm2 01'),
-          new Data(10, 3, 0, 'm2 02'),
-          new Data(15, 2, 0, 'm2 03'),
-         ],
-        ],
-      ];
-    return data;
+    // $.get('http://localhost:8000/data.js', function(contents) { data = contents; })
+    d3.text("currData.js", function(error, contents) {
+        if(error) return console.warn(error);
+        data = eval(contents);
+        updateFrame(data);
+    });
 }
 
 function initializeFrame() {
-    var allData = getData(-1, -1, -1, -1);
-    var numNodes = 2;
-    var numMessages = 3;
-    maxTime = d3.max(allData, function(d) {
-                       return d3.max(d, function(d) {
-                       return d3.max(d, function(d) {
-                           return d.timestamp; }) }) });
-    minTime = d3.min(allData, function(d) {
-                       return d3.min(d, function(d) {
-                       return d3.min(d, function(d) {
-                           return d.timestamp; }) }) });
+    maxSliders[0] = 1;
+    maxSliders[1] = 1;
 
-    maxSliders[0] = numNodes;
-    maxSliders[1] = numMessages;
+    userSliders[0] = 1;
+    userSliders[1] = 1;
 
-    // TODO these will not exist until after the current function completes!
-    userSliders[0] = numNodes;
-    userSliders[1] = numMessages;
-    updateFrame();
-    createToolbox();
+    userMinTime = 0;
+    userMaxTime = 0;
+
+    getData();
 }
 
-function updateFrame() {
-    // Synthetic data for now
-    var allData = getData(userMinTime, userMaxTime, userSliders[0], userSliders[1]);
-    var numNodes = 2;
-    var numMessages = 3;
+function updateFrame(allData) {
+    var numNodes = allData.length;
+    var numMessages = allData[0].length;
+
     maxTime = d3.max(allData, function(d) {
                        return d3.max(d, function(d) {
                        return d3.max(d, function(d) {
@@ -114,7 +53,7 @@ function updateFrame() {
               , width = 500 - margin.left - margin.right
               , height = 250 - margin.top - margin.bottom;
             
-            var x = d3.scale.linear()
+            var x = d3.time.scale()
                       .domain([minTime, maxTime])
                       .range([ 0, width ]);
             
@@ -180,4 +119,5 @@ function updateFrame() {
     }
 
     // Recreate each time because time slider changes
+    createToolbox();
 }

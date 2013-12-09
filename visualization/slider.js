@@ -11,25 +11,32 @@ function updateParams() {
 function createTimeSlider() {
   $( "#timerange-slider" ).slider({
     range: true,
-    min: userMinTime,
-    max: userMaxTime,
-    values: [ minTime, maxTime ],
+    min: minTime,
+    max: maxTime,
+    values: [ userMinTime, userMaxTime ],
     slide: function( event, ui ) {
       $( "#timerange" ).val(ui.values[ 0 ] + " - " + ui.values[ 1 ]);
+      userMinTime = $( "#timerange-slider" ).slider( "values", 0 );
+      userMaxTime = $( "#timerange-slider" ).slider( "values", 1 );
+      var minVal = new Date(userMinTime*1000).toLocaleTimeString();
+      var maxVal = new Date(userMaxTime*1000).toLocaleTimeString();
+      console.log(minVal)
+      console.log(userMinTime)
+      console.log(maxVal)
+      console.log(userMaxTime)
+      $( "#timerange" ).text(minVal + " - " + maxVal );
     }
   });
-  $( "#timerange" ).val($( "#timerange-slider" ).slider( "values", 0 ) +
-    " - " + $( "#timerange-slider" ).slider( "values", 1 ) );
 }
 
 // Sets up num nodes / messages sliders
 function createGraphSlider() {
   $( "#slider > span" ).each(function(i) {
     $( this ).empty().slider({
-      value: maxSliders[i],
+      value: userSliders[i],
       orientation: "horizontal",
       min: 1,
-      max: userSliders[i],
+      max: maxSliders[i],
       animate: true,
       step: 1,
       slide: function( event, ui ) {
@@ -41,7 +48,18 @@ function createGraphSlider() {
 }
 
 function createToolbox() {
-  createTimeSlider();
-  createGraphSlider();
-  updateParams();
+    $("#slider").empty().html(" \
+              <br/><br/><br/> \
+              <label>Number of Nodes:</label> \
+              <input type=\"text\" class=\"configtext\" readonly> \
+              <br/><span>10</span> \
+ \
+              <br /> <br /> <br /> \
+              <label>Number of Messages:</label> \
+              <input type=\"text\" class=\"configtext\" readonly> \
+              <br/><span>15</span>");
+
+    createTimeSlider();
+    createGraphSlider();
+    updateParams();
 }
