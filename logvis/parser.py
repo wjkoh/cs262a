@@ -37,7 +37,7 @@ class LogParser(object):
             parsed['variables'] = None
             parsed['log_level'] = log_level
             date_str = '%s %s' % (tokens[0], tokens[1])
-            parsed['date'] = datetime.strptime(date_str, '%m%d %H:%M:%S.%f')
+            parsed['date'] = datetime.strptime(date_str, '%m%d %H:%M:%S.%f').replace(year=2013)
             parsed['thread_id'] = int(tokens[2])
             parsed['filename'], line_num = tokens[3].split(':')
             if not line_num[-1].isdigit():  # Remove ']'
