@@ -3,6 +3,15 @@ var data;
 // For default arguments, pass in -1
 function getData(minTime, maxTime, numNodes, numMessages) {
     // $.get('http://localhost:8000/data.js', function(contents) { data = contents; })
+    // jQuery.ajax({
+    //        url: "csvToJs.py",
+    //        success: function (output) {
+    //            data = output;
+    //            console.log(output)
+    //            updateFrame(data);
+    //        }
+    // });
+
     d3.text("currData.js", function(error, contents) {
         if(error) return console.warn(error);
         data = eval(contents);
