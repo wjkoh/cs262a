@@ -9,43 +9,57 @@ function updateParams() {
 
 // Sets up time window sliders
 function createTimeSlider() {
-  minTime = parseInt($( "#minTime" ).val(), 10);
-  maxTime = parseInt($( "#maxTime" ).val(), 10);
   $( "#timerange-slider" ).slider({
     range: true,
     min: minTime,
     max: maxTime,
-    values: [ minTime, maxTime ],
+    values: [ userMinTime, userMaxTime ],
     slide: function( event, ui ) {
       $( "#timerange" ).val(ui.values[ 0 ] + " - " + ui.values[ 1 ]);
+      userMinTime = $( "#timerange-slider" ).slider( "values", 0 );
+      userMaxTime = $( "#timerange-slider" ).slider( "values", 1 );
+      var minVal = new Date(userMinTime*1000).toLocaleTimeString();
+      var maxVal = new Date(userMaxTime*1000).toLocaleTimeString();
+      console.log(minVal)
+      console.log(userMinTime)
+      console.log(maxVal)
+      console.log(userMaxTime)
+      $( "#timerange" ).text(minVal + " - " + maxVal );
     }
   });
-  $( "#timerange" ).val($( "#timerange-slider" ).slider( "values", 0 ) +
-    " - " + $( "#timerange-slider" ).slider( "values", 1 ) );
 }
 
 // Sets up num nodes / messages sliders
 function createGraphSlider() {
-  var maxes = $( "#maxSliders" ).val().split(' ');
   $( "#slider > span" ).each(function(i) {
-    // read initial values from markup and remove that
-    var value = parseInt( $( this ).text(), 10 );
     $( this ).empty().slider({
-      value: value,
+      value: userSliders[i],
       orientation: "horizontal",
       min: 1,
-      max: parseInt(maxes[i], 10),
+      max: maxSliders[i],
       animate: true,
       step: 1,
       slide: function( event, ui ) {
         $($( "#slider > input" ).get(i)).val( ui.value );
+        userSliders[i] = ui.value;
       }
     });
   });
 }
 
 function createToolbox() {
-  createTimeSlider();
-  createGraphSlider();
-  updateParams();
+    $("#slider").empty().html(" \
+              <br/><br/><br/> \
+              <label>Number of Nodes:</label> \
+              <input type=\"text\" class=\"configtext\" readonly> \
+              <br/><span>10</span> \
+ \
+              <br /> <br /> <br /> \
+              <label>Number of Messages:</label> \
+              <input type=\"text\" class=\"configtext\" readonly> \
+              <br/><span>15</span>");
+
+    createTimeSlider();
+    createGraphSlider();
+    updateParams();
 }
