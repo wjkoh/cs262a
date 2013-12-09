@@ -34,3 +34,13 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+## Project-specific
+# Wei Xu's code
+logm-read-only
+# keep all junk cycling through here
+tmp
+# here's where the log to csv parsing should go
+parsedData
+# here's where the python csv2js parsing should go
+visualization/currData.js
