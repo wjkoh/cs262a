@@ -2,10 +2,11 @@
 from collections import defaultdict
 from difflib import SequenceMatcher as sm
 from itertools import groupby
-from parser import LogParser
 import csv
 import glob
 import os
+
+from parser import LogParser
 
 
 def parse_num(num):
@@ -50,7 +51,7 @@ def get_variable_str(common_str, log_msg):
 
 
 if __name__ == '__main__':
-    output_dir = 'parsedData/%s'
+    output_dir = './parsedData/%s'
 
     log_fnames_by_node = defaultdict(list)
     log_fnames = glob.glob('./data/*.log.*')

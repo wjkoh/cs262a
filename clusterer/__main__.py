@@ -14,6 +14,7 @@ def extract_feature_vectors(data_dir):
     node_dirs = os.listdir(data_dir)
 
     # Find all the log types
+    print 'Find all the log types...'
     all_log_types = set()
     for node_dir in node_dirs:
         log_files = glob.glob(os.path.join(data_dir, node_dir, '*.csv'))
@@ -24,8 +25,10 @@ def extract_feature_vectors(data_dir):
     all_log_types = frozenset(all_log_types)
 
     # Extract feature vectors
+    print 'Extract feature vectors...'
     fvs_by_node = defaultdict(lambda: np.zeros(len(all_log_types), dtype=np.int))
     for node_dir in node_dirs:
+        print 'Node', node_dir
         for i, log_type in enumerate(all_log_types):
             with open(os.path.join(data_dir, node_dir, '%s.csv' % log_type), 'rb') as f:
                 reader = csv.DictReader(f)
@@ -48,14 +51,15 @@ def extract_feature_vectors(data_dir):
 
 
 def cluster(fvs, n_clusters):
+    print 'Start clustering for %d clusters...' % n_clusters
     fvs = np.asarray(fvs)
     kmeans = KMeans(init='k-means++', n_clusters=n_clusters)
     return kmeans.fit_predict(fvs)
 
 
 if __name__ == '__main__':
-    fvs_by_node, all_log_types = extract_feature_vectors('../parsedData/')
+    fvs_by_node, all_log_types = extract_feature_vectors('./parsedData/')
     fvs_np = np.array(fvs_by_node.values())
 
-    print 3, cluster(fvs_np, 3)
-    print 2, cluster(fvs_np, 2)
+    print cluster(fvs_np, 3)
+    print cluster(fvs_np, 2)
