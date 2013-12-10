@@ -1,6 +1,7 @@
-cs262a
+CS262A
 ======
 
 CS 262A
 
-$ python logvis
+    $ python logparser
+    $ python clusterer
