@@ -3,20 +3,23 @@ var data;
 // For default arguments, pass in -1
 function getData(minTime, maxTime, numNodes, numMessages) {
     // $.get('http://localhost:8000/data.js', function(contents) { data = contents; })
-    // jQuery.ajax({
-    //        url: "csvToJs.py",
-    //        success: function (output) {
-    //            data = output;
-    //            console.log(output)
-    //            updateFrame(data);
-    //        }
-    // });
-
-    d3.text("currData.js", function(error, contents) {
-        if(error) return console.warn(error);
-        data = eval(contents);
-        updateFrame(data);
+    jQuery.ajax({
+           url: "./csvToJs.py",
+           type: "POST",
+           datatype:"text",
+           success: function (output) {
+               data = eval(output);
+               console.log(output)
+               console.log("done")
+               updateFrame(data);
+           }
     });
+
+    // d3.text("currData.js", function(error, contents) {
+    //     if(error) return console.warn(error);
+    //     data = eval(contents);
+    //     updateFrame(data);
+    // });
 }
 
 function initializeFrame() {

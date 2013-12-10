@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import calendar
 from collections import namedtuple
 import csv
@@ -11,8 +12,8 @@ def rowToKey(row):
 LogData = namedtuple("LogData", "messageId nodeId filename lineNumber date unixtime values logMessage")
 
 # TODO: Gather list of all files
-fileList = glob.glob("../parsedData/*.csv");
-# fileList = ["train.csv"];
+# fileList = glob.glob("../parsedData/*.csv");
+fileList = ["../tmp/train.csv"];
 
 flatData = []
 uniqueIds = []
@@ -72,6 +73,7 @@ for d in flatData:
     data[d.nodeId][d.messageId].append(d);
 
 # Print all that out
+print "Content-Type: text/html\n"
 print '['
 for node_i in range(numNodes):
     print '['
