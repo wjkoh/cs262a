@@ -97,6 +97,7 @@ function updateFrame(allData) {
             var xAxis = d3.svg.axis()
             .scale(x)
             .tickPadding(5)
+            .ticks(5)
             .orient('bottom');
 
             main.append('g')
