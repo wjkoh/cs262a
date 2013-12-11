@@ -9,8 +9,6 @@ function getData(minTime, maxTime, numNodes, numMessages) {
            datatype:"text",
            success: function (output) {
                data = eval(output);
-               console.log(output)
-               console.log("done")
                updateFrame(data);
            }
     });
@@ -24,10 +22,10 @@ function getData(minTime, maxTime, numNodes, numMessages) {
 
 function initializeFrame() {
     maxSliders[0] = 1;
-    maxSliders[1] = 1;
+    maxSliders[1] = 2;
 
     userSliders[0] = 1;
-    userSliders[1] = 1;
+    userSliders[1] = 2;
 
     userMinTime = 0;
     userMaxTime = 0;
@@ -42,11 +40,11 @@ function updateFrame(allData) {
     maxTime = d3.max(allData, function(d) {
                        return d3.max(d, function(d) {
                        return d3.max(d, function(d) {
-                           return d.timestamp; }) }) });
+                           return d.timestamp*1000; }) }) });
     minTime = d3.min(allData, function(d) {
                        return d3.min(d, function(d) {
                        return d3.min(d, function(d) {
-                           return d.timestamp; }) }) });
+                           return d.timestamp*1000; }) }) });
 
     maxSliders[0] = numNodes;
     maxSliders[1] = numMessages;
@@ -57,11 +55,15 @@ function updateFrame(allData) {
         var currRowDiv = d3.selectAll('.charts')
                          .append('div')
                          .attr('class', currRowName)
+                         .style('.margin', '0 auto')
+                         .style('white-space', 'nowrap')
+                         .style('overflow-x', 'scroll')
+                         .style('overflow-y', 'hidden')
 
         for(var msg_i = 0; msg_i < userSliders[1]; ++msg_i) {
             var data = allData[node_i][msg_i];
 
-            var margin = {top: 20, right: 15, bottom: 60, left: 60}
+            var margin = {top: 20, right: 25, bottom: 60, left: 60}
               , width = 500 - margin.left - margin.right
               , height = 250 - margin.top - margin.bottom;
             
@@ -74,10 +76,11 @@ function updateFrame(allData) {
                       .range([ height, 0 ]);
 
             var chart = currRowDiv
+            .append('div')
+            .attr('class', 'main')
             .append('svg:svg')
             .attr('width', width + margin.right + margin.left)
             .attr('height', height + margin.top + margin.bottom)
-            .attr('float', 'left')
             .attr('class', 'chart' + node_i.toString() + "_" + msg_i.toString())
 
             var main = chart.append('g')
@@ -115,7 +118,7 @@ function updateFrame(allData) {
             g.selectAll("scatter-dots")
               .data(data)
               .enter().append("svg:circle")
-                  .attr("cx", function (d,i) { return x(d.timestamp); } )
+                  .attr("cx", function (d,i) { return x(d.timestamp*1000); } )
                   .attr("cy", function (d) { return y(d.value); } )
                   .attr("r", 8)
                   .style("fill", function (d,i) { return colors[d.index]; })
@@ -128,6 +131,31 @@ function updateFrame(allData) {
             title: function() { return this.__data__.message; }
             });
         }
+
+        // Sort log by timestamp
+        var allNodeMessages = []
+        allNodeMessages = allNodeMessages.concat.apply(allNodeMessages, allData[node_i]);
+        allNodeMessages.sort(function(a, b) {
+            return (a.timestamp > b.timestamp) ? 1 : -1;
+        })
+
+        // Print the raw log messages
+        var currLogDiv = currRowDiv
+            .append("div")
+            .style("border", "none")
+            .style("display", "inline-block")
+            .style("height", height + margin.top + margin.bottom)
+            .style("overflow", "auto")
+            .selectAll("p")
+            .data(allNodeMessages)
+            .enter()
+            .append("p")
+            .attr('class', 'logtext')
+            .html(function(d) {
+                return new Date(d.timestamp*1000).toLocaleTimeString() +
+                       ": " + d.message +
+                       "<br/>";
+            })
     }
 
     // Recreate each time because time slider changes

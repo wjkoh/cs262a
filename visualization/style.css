@@ -4,7 +4,7 @@ body {
 
 .charts div {
     font: 10px sans-serif;
-    text-align: right;
+    text-align: left;
     margin: 1px;
     color: white;
 
@@ -13,6 +13,18 @@ body {
     border-radius: 7px;
     padding:10px;
     margin:10px;
+}
+
+.logcontainer {
+    font: 14px sans-serif;  
+    color: black;
+    border: none;
+}
+
+.logtext {
+    font: 14px sans-serif;  
+    color: white;
+    border: none;
 }
 
 .configtext {
@@ -31,13 +43,17 @@ body {
     border: 2px solid #dadada;
     background-color: #000F26;
     border-radius: 7px;
-    float:right;
     padding:10px;
     margin:10px;
-    margin-right:10px;
+    float:right;
+}
+
+.main {
+    display: inline-block;
 }
 
 .main text {
+    float:left;
     font: 18px sans-serif;  
     color: white;
 }
