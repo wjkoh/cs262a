@@ -92,6 +92,7 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
                 c = Counter(timestamps)
                 timestamps, counts = zip(*sorted(c.items()))
 
+                # I used reverse prefix sums because it was easier to think.
                 cumulative_cnts = []
                 total_cnt = 0
                 for count in reversed(counts):
