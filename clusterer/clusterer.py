@@ -17,12 +17,12 @@ __all__ = ['get_all_log_types', 'extract_feature_vectors', 'cluster', 'run_clust
 
 
 def get_all_log_types(node_dirs, regex_pattern='.'):
-    prog = re.compile(regex_pattern, flags=re.DOTALL | re.MULTILINE)
+    prog = re.compile(regex_pattern, flags=re.MULTILINE)
 
     # Find all the log types
     #print 'Find all the log types...'
     all_log_types = set()
-    matched_log_types = set()
+    matched_log_types = set()  # Log types matched with the regex pattern
     for node_dir in node_dirs:
         log_files = glob.glob(os.path.join(node_dir, '*.csv'))
 
@@ -34,11 +34,19 @@ def get_all_log_types(node_dirs, regex_pattern='.'):
             all_log_types.add(log_type_str)
 
             matched = True
-            with open(log_file, 'rb') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if prog.search(row['log_msg']) is None:
+            txt_file = os.path.splitext(log_file)[0] + '.txt'
+            try:
+                with open(txt_file, 'r') as f:
+                    common_strs = f.read()
+                    if prog.search(common_strs) is None:
                         matched = False
+            except IOError:
+                with open(log_file, 'rb') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        if prog.search(row['log_msg']) is None:
+                            matched = False
+                            break
             if matched:
                 matched_log_types.add(log_type_str)
     all_log_types = frozenset(all_log_types)

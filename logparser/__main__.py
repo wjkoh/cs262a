@@ -91,16 +91,16 @@ if __name__ == '__main__':
 
         if False:
             # Print out logs and their variable parts
-            for k, v in logs_by_type.iteritems():
-                print k
-                for log in v:
+            for log_type, logs in logs_by_type.iteritems():
+                print log_type
+                for log in logs:
                     print variables[log], log.log_msg
                 print 'Done.'
 
-        for k, v in logs_by_type.iteritems():
+        for log_type, logs in logs_by_type.iteritems():
             # Check the maximum length of variable parts
             max_var_len = 1
-            for log in v:
+            for log in logs:
                 max_var_len = max(max_var_len, len(variables[log]))
 
             try:
@@ -108,24 +108,23 @@ if __name__ == '__main__':
             except OSError:
                 pass
 
-            # Remove CSV and cache files
+            # Remove cache files
             try:
-                os.remove(output_dir % node_id + '/log_%s_%s.csv' % k)
-            except OSError:
-                pass
-            try:
-                os.remove(output_dir % node_id + '/log_%s_%s.npz' % k)
+                os.remove(output_dir % node_id + '/log_%s_%s.npz' % log_type)
             except OSError:
                 pass
 
-            with open(output_dir % node_id + '/log_%s_%s.csv' % k, 'wb') as csvfile:
+            with open(output_dir % node_id + '/log_%s_%s.txt' % log_type, 'w') as txtfile:
+                txtfile.write(common_strs[log_type])
+
+            with open(output_dir % node_id + '/log_%s_%s.csv' % log_type, 'wb') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(['filename', 'line_num', 'date']
                         + ['log_msg']
                         + ['v%d' % i for i in range(max_var_len)])
-                for log in v:
+                for log in logs:
                     var_str = variables[log]
                     while len(var_str) < max_var_len:
                         var_str.append('')
-                    writer.writerow(list(k) + [log.date] + [log.log_msg] + var_str)
+                    writer.writerow(list(log_type) + [log.date] + [log.log_msg] + var_str)
         print 'Done writing to CSV files.'

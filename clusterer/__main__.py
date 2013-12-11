@@ -17,7 +17,7 @@ if __name__ == '__main__':
     assert start_time >= 0 and end_time >= 0
     regex_pattern = sys.argv[4]
 
-    fvs_by_node, all_log_types = extract_feature_vectors(node_dirs, start_time, end_time)
+    fvs_by_node, all_log_types, _, _ = extract_feature_vectors(node_dirs, start_time, end_time)
     fvs_np = np.array(fvs_by_node.values(), dtype=np.float)
 
     km = cluster(fvs_np, n_clusters)
