@@ -11,8 +11,10 @@ if __name__ == '__main__':
     node_dirs = [os.path.join(data_dir, node_dir) for node_dir in os.listdir(data_dir)]
 
     n_clusters = int(sys.argv[1])
-    start_time = datetime.datetime.fromtimestamp(int(sys.argv[2]))
-    end_time = datetime.datetime.fromtimestamp(int(sys.argv[3]))
+    assert n_clusters > 0
+    start_time = int(sys.argv[2])
+    end_time = int(sys.argv[3])
+    assert start_time >= 0 and end_time >= 0
     regex_pattern = sys.argv[4]
 
     fvs_by_node, all_log_types = extract_feature_vectors(node_dirs, start_time, end_time)

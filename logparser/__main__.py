@@ -108,6 +108,10 @@ if __name__ == '__main__':
             except OSError:
                 pass
 
+            # Remove CSV and cache files
+            os.remove(output_dir % node_id + '/log_%s_%s.csv' % k)
+            os.remove(output_dir % node_id + '/log_%s_%s.npz' % k)
+
             with open(output_dir % node_id + '/log_%s_%s.csv' % k, 'wb') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(['filename', 'line_num', 'date']

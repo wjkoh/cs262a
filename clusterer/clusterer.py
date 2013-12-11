@@ -1,4 +1,7 @@
+from collections import Counter
 from collections import defaultdict
+import bisect
+import calendar
 import csv
 import datetime
 import glob
@@ -17,7 +20,7 @@ def get_all_log_types(node_dirs, regex_pattern='.'):
     prog = re.compile(regex_pattern, flags=re.DOTALL | re.MULTILINE)
 
     # Find all the log types
-    #print 'Find all the log types...'
+    print 'Find all the log types...'
     all_log_types = set()
     matched_log_types = set()
     for node_dir in node_dirs:
@@ -43,41 +46,82 @@ def get_all_log_types(node_dirs, regex_pattern='.'):
     return all_log_types, matched_log_types
 
 
+def read_dates_from_csv_file(fname):
+    with open(fname, 'rb') as f:
+        reader = csv.DictReader(f)
+
+        # Get the date column
+        dates = []
+        timestamps = []
+        for row in reader:
+            try:
+                date = datetime.datetime.strptime(row['date'],
+                        '%Y-%m-%d %H:%M:%S.%f')
+            except ValueError:
+                date = datetime.datetime.strptime(row['date'],
+                        '%Y-%m-%d %H:%M:%S')
+            dates.append(date)
+            timestamps.append(calendar.timegm(date.utctimetuple()))
+    return dates, timestamps
+
+
 def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
+    start_dt = datetime.datetime.utcfromtimestamp(start_time)
+    end_dt = datetime.datetime.utcfromtimestamp(end_time)
+
     all_log_types, _ = get_all_log_types(node_dirs)
 
     # Extract feature vectors
-    #print 'Extract feature vectors...'
+    print 'Extract feature vectors...'
     fvs_by_node = defaultdict(lambda: np.zeros(len(all_log_types), dtype=np.int))
     for node_dir in node_dirs:
-        #print 'Node', node_dir
+        print 'Node', node_dir
         for i, log_type in enumerate(all_log_types):
-            with open(os.path.join(node_dir, '%s.csv' % log_type), 'rb') as f:
-                reader = csv.DictReader(f)
-                rows = list(reader)  # A header is not included.
+            out_file = os.path.join(node_dir, '%s.npz' % log_type)
 
-                # Get the date column
-                n_matched = 0
-                dates = []
-                for row in rows:
-                    try:
-                        date = datetime.datetime.strptime(row['date'],
-                                '%Y-%m-%d %H:%M:%S.%f')
-                    except ValueError:
-                        date = datetime.datetime.strptime(row['date'],
-                                '%Y-%m-%d %H:%M:%S')
-                    if start_time <= date <= end_time:
-                        n_matched += 1
-                    dates.append(date)
+            try:
+                npz_file = np.load(out_file)
+                timestamps = npz_file['timestamps']
+                cumulative_cnts = npz_file['cumulative_cnts']
+            except IOError:
+                print 'No .npz file exists.', 'Rebuilding from CSV file...'
+                csv_file = os.path.join(node_dir, '%s.csv' % log_type)
+                dates, timestamps = read_dates_from_csv_file(csv_file)
 
-                # Might need to filter by timestamps
-                assert n_matched <= len(rows)
-                fvs_by_node[node_dir][i] = n_matched
+                # Build data structures for fast range queries
+                c = Counter(timestamps)
+                timestamps, counts = zip(*sorted(c.items()))
+
+                cumulative_cnts = []
+                total_cnt = 0
+                for count in reversed(counts):
+                    total_cnt += count
+                    cumulative_cnts.append(total_cnt)
+                cumulative_cnts.reverse()
+
+                # Convert to NumPy arrays
+                timestamps = np.asarray(timestamps, dtype=np.uint)
+                cumulative_cnts = np.asarray(cumulative_cnts, dtype=np.uint)
+
+                # Save
+                np.savez(out_file, timestamps=timestamps, cumulative_cnts=cumulative_cnts)
+
+            # Binary search
+            n_matched = 0
+            beg_idx = bisect.bisect_left(timestamps, start_time)  # GTEQ
+            if beg_idx != len(timestamps):
+                n_matched =  cumulative_cnts[beg_idx]
+
+                end_idx = bisect.bisect_left(timestamps, end_time) # GTEQ
+                if end_idx != len(timestamps):
+                    n_matched -= cumulative_cnts[end_idx]
+            fvs_by_node[node_dir][i] = n_matched
+
     return fvs_by_node, all_log_types
 
 
 def cluster(fvs, n_clusters):
-    #print 'Start clustering for %d clusters...' % n_clusters
+    print 'Start clustering for %d clusters...' % n_clusters
     fvs = np.asarray(fvs)
     kmeans = KMeans(init='k-means++', n_clusters=n_clusters)
     return kmeans.fit(fvs)
