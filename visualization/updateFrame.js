@@ -58,7 +58,9 @@ function updateFrame(allData) {
     grepCommand = $("#greptext").val()
 
     d3.selectAll('.charts').text('');
-    for(var node_i = 0; node_i < userSliders[0]; ++node_i) {
+    minNode = Math.min(userSliders[0], allData.length);
+    minMsg = Math.min(userSliders[1], allData[0].length);
+    for(var node_i = 0; node_i < minNode; ++node_i) {
         var currRowName = 'chart_' + node_i.toString()
         var currRowDiv = d3.selectAll('.charts')
                          .append('div')
@@ -68,7 +70,7 @@ function updateFrame(allData) {
                          .style('overflow-x', 'scroll')
                          .style('overflow-y', 'hidden')
 
-        for(var msg_i = 0; msg_i < userSliders[1]; ++msg_i) {
+        for(var msg_i = 0; msg_i < minMsg; ++msg_i) {
             var data = allData[node_i][msg_i];
 
             var margin = {top: 20, right: 25, bottom: 60, left: 60}

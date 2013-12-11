@@ -109,8 +109,15 @@ if __name__ == '__main__':
                 pass
 
             # Remove CSV and cache files
-            os.remove(output_dir % node_id + '/log_%s_%s.csv' % k)
-            os.remove(output_dir % node_id + '/log_%s_%s.npz' % k)
+            try:
+                os.remove(output_dir % node_id + '/log_%s_%s.csv' % k)
+            except:
+                pass
+
+            try:
+                os.remove(output_dir % node_id + '/log_%s_%s.npz' % k)
+            except:
+                pass
 
             with open(output_dir % node_id + '/log_%s_%s.csv' % k, 'wb') as csvfile:
                 writer = csv.writer(csvfile)
