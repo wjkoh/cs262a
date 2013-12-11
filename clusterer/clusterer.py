@@ -20,7 +20,7 @@ def get_all_log_types(node_dirs, regex_pattern='.'):
     prog = re.compile(regex_pattern, flags=re.DOTALL | re.MULTILINE)
 
     # Find all the log types
-    print 'Find all the log types...'
+    #print 'Find all the log types...'
     all_log_types = set()
     matched_log_types = set()
     for node_dir in node_dirs:
@@ -72,10 +72,10 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
     all_log_types, _ = get_all_log_types(node_dirs)
 
     # Extract feature vectors
-    print 'Extract feature vectors...'
+    #print 'Extract feature vectors...'
     fvs_by_node = defaultdict(lambda: np.zeros(len(all_log_types), dtype=np.int))
     for node_dir in node_dirs:
-        print 'Node', node_dir
+        #print 'Node', node_dir
         for i, log_type in enumerate(all_log_types):
             out_file = os.path.join(node_dir, '%s.npz' % log_type)
 
@@ -84,7 +84,7 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
                 timestamps = npz_file['timestamps']
                 cumulative_cnts = npz_file['cumulative_cnts']
             except IOError:
-                print 'No .npz file exists.', 'Rebuilding from CSV file...'
+                #print 'No .npz file exists.', 'Rebuilding from CSV file...'
                 csv_file = os.path.join(node_dir, '%s.csv' % log_type)
                 dates, timestamps = read_dates_from_csv_file(csv_file)
 
@@ -122,7 +122,7 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
 
 
 def cluster(fvs, n_clusters):
-    print 'Start clustering for %d clusters...' % n_clusters
+    #print 'Start clustering for %d clusters...' % n_clusters
     fvs = np.asarray(fvs)
     kmeans = KMeans(init='k-means++', n_clusters=n_clusters)
     return kmeans.fit(fvs)
