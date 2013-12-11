@@ -86,7 +86,11 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
             except IOError:
                 print 'No .npz file exists.', 'Rebuilding from CSV file...'
                 csv_file = os.path.join(node_dir, '%s.csv' % log_type)
-                dates, timestamps = read_dates_from_csv_file(csv_file)
+                try:
+                    dates, timestamps = read_dates_from_csv_file(csv_file)
+                except IOError:
+                    fvs_by_node[node_dir][i] = 0
+                    continue
 
                 # Build data structures for fast range queries
                 c = Counter(timestamps)
@@ -117,7 +121,6 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
                 if end_idx != len(timestamps):
                     n_matched -= cumulative_cnts[end_idx]
             fvs_by_node[node_dir][i] = n_matched
-
     return fvs_by_node, all_log_types
 
 
