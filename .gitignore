@@ -42,5 +42,5 @@ logm-read-only
 tmp
 # here's where the log to csv parsing should go
 parsedData
-# here's where the python csv2js parsing should go
-visualization/currData.js
+# here's where the visualization cache goes
+visualization/cache/*

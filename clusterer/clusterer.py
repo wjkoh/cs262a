@@ -74,6 +74,8 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
     # Extract feature vectors
     #print 'Extract feature vectors...'
     fvs_by_node = defaultdict(lambda: np.zeros(len(all_log_types), dtype=np.int))
+    min_time = float('inf')
+    max_time = 0
     for node_dir in node_dirs:
         #print 'Node', node_dir
         for i, log_type in enumerate(all_log_types):
@@ -111,6 +113,9 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
                 # Save
                 np.savez(out_file, timestamps=timestamps, cumulative_cnts=cumulative_cnts)
 
+            min_time = min(timestamps[0], min_time);
+            max_time = max(timestamps[-1], max_time);
+            
             # Binary search
             n_matched = 0
             beg_idx = bisect.bisect_left(timestamps, start_time)  # GTEQ
@@ -121,7 +126,7 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
                 if end_idx != len(timestamps):
                     n_matched -= cumulative_cnts[end_idx]
             fvs_by_node[node_dir][i] = n_matched
-    return fvs_by_node, all_log_types
+    return fvs_by_node, all_log_types, min_time, max_time
 
 
 def cluster(fvs, n_clusters):
@@ -133,7 +138,8 @@ def cluster(fvs, n_clusters):
 def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
     node_dirs = [os.path.join(data_dir, node_dir) for node_dir in os.listdir(data_dir)]
 
-    fvs_by_node, all_log_types = extract_feature_vectors(node_dirs, start_time, end_time)
+    fvs_by_node, all_log_types, min_time, max_time = \
+            extract_feature_vectors(node_dirs, start_time, end_time)
     fvs_np = np.array(fvs_by_node.values(), dtype=np.float)
 
     km = cluster(fvs_np, n_clusters)
@@ -147,4 +153,6 @@ def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
     matched_log_types = get_all_log_types(node_dirs, regex_pattern)[1]
     return {'closest_nodes': closest_node_dirs, \
             'matched_log_types': matched_log_types, \
-            'num_nodes': len(node_dirs) };
+            'num_nodes': len(node_dirs), \
+            'min_time': min_time, \
+            'max_time': max_time }

@@ -4,6 +4,7 @@ from collections import namedtuple
 import csv
 import glob
 import json
+import os.path
 import sys
 import time
 
@@ -16,10 +17,10 @@ if len(sys.argv) == 1:
     minTime =  int(args[1])
     maxTime =  int(args[2])
     grepMsg = args[3]
-elif len(sys.argv) == 4:
+elif len(sys.argv) != 5:
     numClusters = 2;
     minTime = 0;
-    maxTime = calendar.timegm(time.gmtime());
+    maxTime = 1923228265; # Year 2020
     grepMsg = "";
 else:
     numClusters = int(sys.argv[1])
@@ -28,7 +29,22 @@ else:
     grepMsg = sys.argv[4]
 
 if(maxTime==minTime):
-    maxTime = calendar.timegm(time.gmtime());
+    maxTime = 1923228265;
+
+# Reload from cache if possible
+keepcharacters = (' ','.','_')
+grepMsgSafe = "".join(c for c in grepMsg if c.isalnum() or c in keepcharacters).rstrip()
+cacheFilename = 'cache/' + str(numClusters) + "_" +\
+                           str(minTime) + "_" +    \
+                           str(maxTime) + "_" +    \
+                           str(grepMsgSafe) + ".txt";
+if(os.path.exists(cacheFilename)):
+    f = open(cacheFilename, "r")
+    data = f.read()
+    f.close()
+    print data;
+    quit()
+
 clusterOutput = clusterer.run_clustering('../parsedData', \
                                          numClusters, minTime, maxTime, grepMsg);
 
@@ -37,6 +53,8 @@ clusterOutput = clusterer.run_clustering('../parsedData', \
 nodeList = clusterOutput['closest_nodes'];
 msgList = clusterOutput['matched_log_types'];
 totalNumNodes = clusterOutput['num_nodes'];
+totalMinTime = clusterOutput['min_time'];
+totalMaxTime = clusterOutput['max_time'];
 
 def rowToKey(row):
     return row[0] + row[1];
@@ -89,6 +107,9 @@ for currNode in nodeList:
                            unixtime = timefmt,
                            values = l[4:numel])
 
+            if curr.unixtime > maxTime or curr.unixtime < minTime:
+                continue;
+
             # Append to one-dimensional
             flatData.append(curr);
 
@@ -100,6 +121,18 @@ numClusters = len(nodeList);
 data = [ [[] for _ in range(numMessages) ] for _ in range(numClusters) ]; 
 for d in flatData:
     data[d.nodeId][d.messageId].append(d);
+
+# Set up printing to go to file and stdout
+class Cacher(object):
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "w")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)  
+
+sys.stdout = Cacher(cacheFilename)
 
 # Print all that out
 print "Content-Type: text/html\n"
@@ -124,3 +157,5 @@ for node_i in range(numClusters):
     print '],'
 print '];'
 print 'totalNumNodes = ' + str(totalNumNodes) + ';'
+print 'totalMinTime = ' + str(totalMinTime) + ';'
+print 'totalMaxTime = ' + str(totalMaxTime) + ';'

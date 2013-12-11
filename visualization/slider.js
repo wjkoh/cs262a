@@ -11,8 +11,8 @@ function updateParams() {
 function updateSliderText() {
       userMinTime = $( "#timerange-slider" ).slider( "values", 0 );
       userMaxTime = $( "#timerange-slider" ).slider( "values", 1 );
-      var minVal = new Date(userMinTime).toLocaleTimeString();
-      var maxVal = new Date(userMaxTime).toLocaleTimeString();
+      var minVal = new Date(userMinTime*1000).toLocaleTimeString();
+      var maxVal = new Date(userMaxTime*1000).toLocaleTimeString();
       $( "#timerange" ).text(minVal + " - " + maxVal );
 }
 

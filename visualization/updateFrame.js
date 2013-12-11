@@ -13,6 +13,8 @@ function getData() {
            success: function (output) {
                eval(output); // Returns data and totalNumNodes
                maxSliders[0] = totalNumNodes;
+               minTime = totalMinTime;
+               maxTime = totalMaxTime;
                updateFrame(data);
                $("#statustext").html("")
            }
@@ -41,17 +43,9 @@ function initializeFrame() {
 }
 
 function updateFrame(allData) {
+    var margin = {top: 20, right: 25, bottom: 60, left: 60};
     var numNodes = allData.length;
     var numMessages = allData[0].length;
-
-    maxTime = d3.max(allData, function(d) {
-                       return d3.max(d, function(d) {
-                       return d3.max(d, function(d) {
-                           return d.timestamp*1000; }) }) });
-    minTime = d3.min(allData, function(d) {
-                       return d3.min(d, function(d) {
-                       return d3.min(d, function(d) {
-                           return d.timestamp*1000; }) }) });
 
     grepCommand = $("#greptext").val()
 
@@ -70,13 +64,14 @@ function updateFrame(allData) {
 
         for(var msg_i = 0; msg_i < minMsg; ++msg_i) {
             var data = allData[node_i][msg_i];
+            if(data.length == 0) { continue; }
 
             var margin = {top: 20, right: 25, bottom: 60, left: 60}
               , width = 500 - margin.left - margin.right
               , height = 250 - margin.top - margin.bottom;
             
             var x = d3.time.scale()
-                      .domain([minTime, maxTime])
+                      .domain([minTime*1000, maxTime*1000])
                       .range([ 0, width ]);
             
             var y = d3.scale.linear()
@@ -112,7 +107,7 @@ function updateFrame(allData) {
             // draw the y axis
             var yAxis = d3.svg.axis()
             .scale(y)
-            .tickPadding(5)
+            .tickPadding(15)
             .ticks(5)
             .orient('left');
 
