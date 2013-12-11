@@ -111,12 +111,11 @@ if __name__ == '__main__':
             # Remove CSV and cache files
             try:
                 os.remove(output_dir % node_id + '/log_%s_%s.csv' % k)
-            except:
+            except OSError:
                 pass
-
             try:
                 os.remove(output_dir % node_id + '/log_%s_%s.npz' % k)
-            except:
+            except OSError:
                 pass
 
             with open(output_dir % node_id + '/log_%s_%s.csv' % k, 'wb') as csvfile:

@@ -58,7 +58,7 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.csv("data.csv", function(error, data) {
+d3.csv("./parsedData/10204/log_feature_pyramid.cc_55.csv", function(error, data) {
   data.forEach(function(d) {
     d.date = d.date.substring(0, d.date.length - 3);
     d.date = parseDate(d.date);

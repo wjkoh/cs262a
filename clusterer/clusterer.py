@@ -115,7 +115,7 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
 
             min_time = min(timestamps[0], min_time);
             max_time = max(timestamps[-1], max_time);
-            
+
             # Binary search
             n_matched = 0
             beg_idx = bisect.bisect_left(timestamps, start_time)  # GTEQ
@@ -135,6 +135,7 @@ def cluster(fvs, n_clusters):
     kmeans = KMeans(init='k-means++', n_clusters=n_clusters)
     return kmeans.fit(fvs)
 
+
 def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
     node_dirs = [os.path.join(data_dir, node_dir) for node_dir in os.listdir(data_dir)]
 
@@ -150,6 +151,7 @@ def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
     closest_node_dirs = []
     for node in closest_nodes:
         closest_node_dirs.append(fvs_by_node.keys()[node])
+
     matched_log_types = get_all_log_types(node_dirs, regex_pattern)[1]
     return {'closest_nodes': closest_node_dirs, \
             'matched_log_types': matched_log_types, \
