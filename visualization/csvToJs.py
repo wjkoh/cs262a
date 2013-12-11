@@ -53,8 +53,10 @@ clusterOutput = clusterer.run_clustering('../parsedData', \
 nodeList = clusterOutput['closest_nodes'];
 msgList = clusterOutput['matched_log_types'];
 totalNumNodes = clusterOutput['num_nodes'];
+totalNumMessages = clusterOutput['num_messages'];
 totalMinTime = clusterOutput['min_time'];
 totalMaxTime = clusterOutput['max_time'];
+nodesPerCluster = clusterOutput['nodes_per_cluster'];
 
 def rowToKey(row):
     return row[0] + row[1];
@@ -157,5 +159,8 @@ for node_i in range(numClusters):
     print '],'
 print '];'
 print 'totalNumNodes = ' + str(totalNumNodes) + ';'
+print 'totalNumMessages = ' + str(totalNumMessages) + ';'
 print 'totalMinTime = ' + str(totalMinTime) + ';'
 print 'totalMaxTime = ' + str(totalMaxTime) + ';'
+for key, val in nodesPerCluster.iteritems():
+    print 'nodesPerCluster[' + str(key) + '] = ' + str(val) + ';'

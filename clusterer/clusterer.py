@@ -152,7 +152,10 @@ def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
     fvs_np = np.array(fvs_by_node.values(), dtype=np.float)
 
     km = cluster(fvs_np, n_clusters)
-    km.predict(fvs_np)
+    pred = km.predict(fvs_np)
+    from collections import Counter
+    c = Counter(pred)
+    c = dict(c)
 
     dists = km.transform(fvs_np)
     closest_nodes = np.argmin(dists, axis=0)
@@ -164,5 +167,8 @@ def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
     return {'closest_nodes': closest_node_dirs, \
             'matched_log_types': matched_log_types, \
             'num_nodes': len(node_dirs), \
+            'num_messages': len(matched_log_types), \
             'min_time': min_time, \
-            'max_time': max_time }
+            'max_time': max_time,
+            'nodes_per_cluster': c
+            }

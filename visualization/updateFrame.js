@@ -13,6 +13,7 @@ function getData() {
            success: function (output) {
                eval(output); // Returns data and totalNumNodes
                maxSliders[0] = totalNumNodes;
+               maxSliders[1] = totalNumMessages;
                minTime = totalMinTime;
                maxTime = totalMaxTime;
                updateFrame(data);
@@ -43,11 +44,20 @@ function initializeFrame() {
 }
 
 function updateFrame(allData) {
-    var margin = {top: 20, right: 25, bottom: 60, left: 60};
+    var margin = {top: 20, right: 35, bottom: 60, left: 60};
     var numNodes = allData.length;
     var numMessages = allData[0].length;
 
     grepCommand = $("#greptext").val()
+
+    displayMaxTime = d3.max(allData, function(d) {
+                       return d3.max(d, function(d) {
+                       return d3.max(d, function(d) {
+                           return d.timestamp*1000; }) }) });
+    displayMinTime = d3.min(allData, function(d) {
+                       return d3.min(d, function(d) {
+                       return d3.min(d, function(d) {
+                           return d.timestamp*1000; }) }) });
 
     d3.selectAll('.charts').text('');
     minNode = Math.min(userSliders[0], allData.length);
@@ -61,17 +71,21 @@ function updateFrame(allData) {
                          .style('white-space', 'nowrap')
                          .style('overflow-x', 'scroll')
                          .style('overflow-y', 'hidden')
+                         .html('<h1 style="margin-left:100px; margin-bottom:0px;">' +
+                               'Cluster ' + (node_i+1) +
+                               ' contains ' + nodesPerCluster[node_i] +
+                               ' nodes.</h1>');
 
         for(var msg_i = 0; msg_i < minMsg; ++msg_i) {
             var data = allData[node_i][msg_i];
             if(data.length == 0) { continue; }
 
-            var margin = {top: 20, right: 25, bottom: 60, left: 60}
+            var margin = {top: 20, right: 45, bottom: 60, left: 60}
               , width = 500 - margin.left - margin.right
               , height = 250 - margin.top - margin.bottom;
             
             var x = d3.time.scale()
-                      .domain([minTime*1000, maxTime*1000])
+                      .domain([displayMinTime, displayMaxTime])
                       .range([ 0, width ]);
             
             var y = d3.scale.linear()
@@ -97,7 +111,7 @@ function updateFrame(allData) {
             var xAxis = d3.svg.axis()
             .scale(x)
             .tickPadding(5)
-            .ticks(5)
+            .ticks(3)
             .orient('bottom');
 
             main.append('g')
