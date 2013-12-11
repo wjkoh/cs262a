@@ -1,15 +1,19 @@
 var data;
 
 // For default arguments, pass in -1
-function getData(minTime, maxTime, numNodes, numMessages) {
-    // $.get('http://localhost:8000/data.js', function(contents) { data = contents; })
+function getData() {
+    args = [userSliders[0], userMinTime, userMaxTime, grepCommand];
+    $("#statustext").html("Loading new data...")
+
     jQuery.ajax({
            url: "./csvToJs.py",
            type: "POST",
+           data: JSON.stringify(args),
            datatype:"text",
            success: function (output) {
                data = eval(output);
                updateFrame(data);
+               $("#statustext").html("")
            }
     });
 
@@ -27,8 +31,10 @@ function initializeFrame() {
     userSliders[0] = 1;
     userSliders[1] = 2;
 
-    userMinTime = 1;
-    userMaxTime = 10;
+    userMinTime = 0;
+    userMaxTime = 0;
+
+    grepCommand = $("#greptext").val()
 
     getData();
 }
@@ -52,7 +58,9 @@ function updateFrame(allData) {
     grepCommand = $("#greptext").val()
 
     d3.selectAll('.charts').text('');
-    for(var node_i = 0; node_i < userSliders[0]; ++node_i) {
+    minNode = Math.min(userSliders[0], allData.length);
+    minMsg = Math.min(userSliders[1], allData[0].length);
+    for(var node_i = 0; node_i < minNode; ++node_i) {
         var currRowName = 'chart_' + node_i.toString()
         var currRowDiv = d3.selectAll('.charts')
                          .append('div')
@@ -62,7 +70,7 @@ function updateFrame(allData) {
                          .style('overflow-x', 'scroll')
                          .style('overflow-y', 'hidden')
 
-        for(var msg_i = 0; msg_i < userSliders[1]; ++msg_i) {
+        for(var msg_i = 0; msg_i < minMsg; ++msg_i) {
             var data = allData[node_i][msg_i];
 
             var margin = {top: 20, right: 25, bottom: 60, left: 60}
@@ -122,7 +130,7 @@ function updateFrame(allData) {
               .enter().append("svg:circle")
                   .attr("cx", function (d,i) { return x(d.timestamp*1000); } )
                   .attr("cy", function (d) { return y(d.value); } )
-                  .attr("r", 8)
+                  .attr("r", 3)
                   .style("fill", function (d,i) { return colors[d.index]; })
                   .append("svg:title")
                   .text(function(d) { return d.message; });

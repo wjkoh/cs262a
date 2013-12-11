@@ -50,9 +50,16 @@
             <br><br><br>
             <div id="grepbox">
                 <label for="greptext" style="float:left">Grep Command:</label><br/>
-                <input type="text" id="greptext" class="textbox"/>
+                <input type="text" id="greptext" class="textbox" value="time"/>
+            </div>
+
+            <br><br><br>
+            <div id="gobutton">
+                <button class="submitbutton" onclick="getData()">Refresh data</button>
             </div>
         </div>
+    </div>
+    <div class="statusbar" id="statustext">
     </div>
 
     <script type="text/javascript" language="javascript">
@@ -85,7 +92,7 @@
         }
 
         initializeFrame();
-        setInterval(getData, 1000*10);
+        setInterval(getData, 1000*30);
 
     </script>
 

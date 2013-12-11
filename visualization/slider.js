@@ -13,10 +13,6 @@ function updateSliderText() {
       userMaxTime = $( "#timerange-slider" ).slider( "values", 1 );
       var minVal = new Date(userMinTime*1000).toLocaleTimeString();
       var maxVal = new Date(userMaxTime*1000).toLocaleTimeString();
-      console.log(minVal)
-      console.log(userMinTime)
-      console.log(maxVal)
-      console.log(userMaxTime)
       $( "#timerange" ).text(minVal + " - " + maxVal );
 }
 
