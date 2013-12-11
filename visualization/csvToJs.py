@@ -27,6 +27,8 @@ else:
     maxTime =  int(sys.argv[3])
     grepMsg = sys.argv[4]
 
+if(maxTime==minTime):
+    maxTime = calendar.timegm(time.gmtime());
 clusterOutput = clusterer.run_clustering('../parsedData', \
                                          numNodes, minTime, maxTime, grepMsg);
 
@@ -86,12 +88,6 @@ for currNode in nodeList:
                            logMessage = l[3],
                            unixtime = timefmt,
                            values = l[4:numel])
-
-            # Validate time TODO
-            minTime = 1381274510
-            maxTime = 1381274515
-            if curr.unixtime > maxTime or curr.unixtime < minTime:
-                continue;
 
             # Append to one-dimensional
             flatData.append(curr);

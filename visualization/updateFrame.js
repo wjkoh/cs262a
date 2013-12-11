@@ -31,8 +31,8 @@ function initializeFrame() {
     userSliders[0] = 1;
     userSliders[1] = 2;
 
-    userMinTime = 1;
-    userMaxTime = 10;
+    userMinTime = 0;
+    userMaxTime = 0;
 
     grepCommand = $("#greptext").val()
 
@@ -130,7 +130,7 @@ function updateFrame(allData) {
               .enter().append("svg:circle")
                   .attr("cx", function (d,i) { return x(d.timestamp*1000); } )
                   .attr("cy", function (d) { return y(d.value); } )
-                  .attr("r", 8)
+                  .attr("r", 3)
                   .style("fill", function (d,i) { return colors[d.index]; })
                   .append("svg:title")
                   .text(function(d) { return d.message; });
