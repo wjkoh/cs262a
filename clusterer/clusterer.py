@@ -133,16 +133,13 @@ def cluster(fvs, n_clusters):
 def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
     node_dirs = [os.path.join(data_dir, node_dir) for node_dir in os.listdir(data_dir)]
 
-    #start_time = datetime.datetime.fromtimestamp(start_time)
-    #end_time = datetime.datetime.fromtimestamp(end_time)
+    fvs_by_node, all_log_types = extract_feature_vectors(node_dirs, start_time, end_time)
+    fvs_np = np.array(fvs_by_node.values(), dtype=np.float)
 
-    #fvs_by_node, all_log_types = extract_feature_vectors(node_dirs, start_time, end_time)
-    #fvs_np = np.array(fvs_by_node.values(), dtype=np.float)
+    km = cluster(fvs_np, n_clusters)
+    km.predict(fvs_np)
 
-    #km = cluster(fvs_np, n_clusters)
-    #km.predict(fvs_np)
-
-    #dists = km.transform(fvs_np)
-    #closest_nodes = np.argmin(dists, axis=0)
+    dists = km.transform(fvs_np)
+    closest_nodes = np.argmin(dists, axis=0)
     matched_log_types = get_all_log_types(node_dirs, regex_pattern)[1]
-    return {'closest_nodes': node_dirs, 'matched_log_types': matched_log_types};
+    return {'closest_nodes': closest_nodes, 'matched_log_types': matched_log_types};
