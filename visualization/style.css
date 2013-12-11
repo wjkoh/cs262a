@@ -37,6 +37,19 @@ body {
     margin-left:20px;
 }
 
+.textbox {
+    font: 18px sans-serif;  
+    color: steelblue;
+    border: 2px solid #dadada;
+    background-color: #FFF;
+    border-radius: 7px;
+    padding: 5px;
+    margin-top:15px;
+    margin-left:15px;
+    float:left;
+    width: 260px;
+}
+
 .config {
     font: 18px sans-serif;  
     color: white;

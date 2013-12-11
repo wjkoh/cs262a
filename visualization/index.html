@@ -12,14 +12,15 @@
     // Global variables
 
     // Slider ranges
-    var minTime;
-    var maxTime;
-    var maxSliders = [];
+    var minTime = 0;
+    var maxTime = 10;
+    var maxSliders = [0, 0];
 
-    // User slider selection
-    var userMinTime;
-    var userMaxTime;
-    var userSliders = [];
+    // User parameter choices
+    var userMinTime = 0;
+    var userMaxTime = 10;
+    var userSliders = [0, 0];
+    var grepCommand = "";
     
 </script>
 
@@ -36,6 +37,7 @@
         <div class="charts" style="float:left">
         </div>
         <div class="config">
+            <h2>Configuration Options</h2>
             <p>
               <label for="timerange" style="float:left">Time range:</label>
               <div id="timerange" class="configtext" style="float:left"></div>
@@ -43,6 +45,12 @@
             <div id="timerange-slider"></div>
 
             <div id="slider">
+            </div>
+
+            <br><br><br>
+            <div id="grepbox">
+                <label for="greptext" style="float:left">Grep Command:</label><br/>
+                <input type="text" id="greptext" class="textbox"/>
             </div>
         </div>
     </div>
@@ -77,7 +85,7 @@
         }
 
         initializeFrame();
-        setInterval(getData, 1000*15);
+        setInterval(getData, 1000*10);
 
     </script>
 

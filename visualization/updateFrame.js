@@ -22,13 +22,13 @@ function getData(minTime, maxTime, numNodes, numMessages) {
 
 function initializeFrame() {
     maxSliders[0] = 1;
-    maxSliders[1] = 2;
+    maxSliders[1] = 10;
 
     userSliders[0] = 1;
     userSliders[1] = 2;
 
-    userMinTime = 0;
-    userMaxTime = 0;
+    userMinTime = 1;
+    userMaxTime = 10;
 
     getData();
 }
@@ -48,6 +48,8 @@ function updateFrame(allData) {
 
     maxSliders[0] = numNodes;
     maxSliders[1] = numMessages;
+
+    grepCommand = $("#greptext").val()
 
     d3.selectAll('.charts').text('');
     for(var node_i = 0; node_i < userSliders[0]; ++node_i) {
