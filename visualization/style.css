@@ -22,7 +22,7 @@ body {
 }
 
 .logtext {
-    font: 14px sans-serif;  
+    font: 14px sans-serif;
     color: white;
     border: none;
 }
@@ -48,6 +48,24 @@ body {
     margin-left:15px;
     float:left;
     width: 260px;
+}
+
+.submitbutton {
+    color: darkblue;
+    background-color: #fff;
+    font: 22px sans-serif;  
+    padding:10px;
+    margin:10px;
+    border-radius: 7px;
+    margin-top: 30px;
+}
+
+.statusbar {
+    font: 22px sans-serif;  
+    color: white;
+    padding:10px;
+    margin:10px;
+    float:left;
 }
 
 .config {

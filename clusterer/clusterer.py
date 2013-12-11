@@ -13,7 +13,7 @@ from sklearn import metrics
 from sklearn.cluster import KMeans
 
 
-__all__ = ['get_all_log_types', 'extract_feature_vectors', 'cluster']
+__all__ = ['get_all_log_types', 'extract_feature_vectors', 'cluster', 'run_clustering']
 
 
 def get_all_log_types(node_dirs, regex_pattern='.'):
@@ -126,3 +126,20 @@ def cluster(fvs, n_clusters):
     fvs = np.asarray(fvs)
     kmeans = KMeans(init='k-means++', n_clusters=n_clusters)
     return kmeans.fit(fvs)
+
+def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
+    node_dirs = [os.path.join(data_dir, node_dir) for node_dir in os.listdir(data_dir)]
+
+    #start_time = datetime.datetime.fromtimestamp(start_time)
+    #end_time = datetime.datetime.fromtimestamp(end_time)
+
+    #fvs_by_node, all_log_types = extract_feature_vectors(node_dirs, start_time, end_time)
+    #fvs_np = np.array(fvs_by_node.values(), dtype=np.float)
+
+    #km = cluster(fvs_np, n_clusters)
+    #km.predict(fvs_np)
+
+    #dists = km.transform(fvs_np)
+    #closest_nodes = np.argmin(dists, axis=0)
+    matched_log_types = get_all_log_types(node_dirs, regex_pattern)[1]
+    return {'closest_nodes': node_dirs, 'matched_log_types': matched_log_types};

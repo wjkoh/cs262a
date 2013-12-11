@@ -1,15 +1,19 @@
 var data;
 
 // For default arguments, pass in -1
-function getData(minTime, maxTime, numNodes, numMessages) {
-    // $.get('http://localhost:8000/data.js', function(contents) { data = contents; })
+function getData() {
+    args = [userSliders[0], userMinTime, userMaxTime, grepCommand];
+    $("#statustext").html("Loading new data...")
+
     jQuery.ajax({
            url: "./csvToJs.py",
            type: "POST",
+           data: JSON.stringify(args),
            datatype:"text",
            success: function (output) {
                data = eval(output);
                updateFrame(data);
+               $("#statustext").html("")
            }
     });
 
@@ -29,6 +33,8 @@ function initializeFrame() {
 
     userMinTime = 1;
     userMaxTime = 10;
+
+    grepCommand = $("#greptext").val()
 
     getData();
 }
