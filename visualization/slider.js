@@ -8,14 +8,7 @@ function updateParams() {
 }
 
 // Sets up time window sliders
-function createTimeSlider() {
-  $( "#timerange-slider" ).slider({
-    range: true,
-    min: minTime,
-    max: maxTime,
-    values: [ userMinTime, userMaxTime ],
-    slide: function( event, ui ) {
-      $( "#timerange" ).val(ui.values[ 0 ] + " - " + ui.values[ 1 ]);
+function updateSliderText() {
       userMinTime = $( "#timerange-slider" ).slider( "values", 0 );
       userMaxTime = $( "#timerange-slider" ).slider( "values", 1 );
       var minVal = new Date(userMinTime*1000).toLocaleTimeString();
@@ -25,7 +18,15 @@ function createTimeSlider() {
       console.log(maxVal)
       console.log(userMaxTime)
       $( "#timerange" ).text(minVal + " - " + maxVal );
-    }
+}
+
+function createTimeSlider() {
+  $( "#timerange-slider" ).slider({
+    range: true,
+    min: minTime,
+    max: maxTime,
+    values: [ userMinTime, userMaxTime ],
+    slide: function(event,ui) {updateSliderText() }
   });
 }
 
