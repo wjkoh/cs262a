@@ -141,5 +141,10 @@ def run_clustering(data_dir, n_clusters, start_time, end_time, regex_pattern):
 
     dists = km.transform(fvs_np)
     closest_nodes = np.argmin(dists, axis=0)
+    closest_node_dirs = []
+    for node in closest_nodes:
+        closest_node_dirs.append(fvs_by_node.keys()[node])
     matched_log_types = get_all_log_types(node_dirs, regex_pattern)[1]
-    return {'closest_nodes': closest_nodes, 'matched_log_types': matched_log_types};
+    return {'closest_nodes': closest_node_dirs, \
+            'matched_log_types': matched_log_types, \
+            'num_nodes': len(node_dirs) };

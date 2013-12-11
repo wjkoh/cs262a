@@ -11,7 +11,8 @@ function getData() {
            data: JSON.stringify(args),
            datatype:"text",
            success: function (output) {
-               data = eval(output);
+               eval(output); // Returns data and totalNumNodes
+               maxSliders[0] = totalNumNodes;
                updateFrame(data);
                $("#statustext").html("")
            }
@@ -26,10 +27,10 @@ function getData() {
 
 function initializeFrame() {
     maxSliders[0] = 1;
-    maxSliders[1] = 10;
+    maxSliders[1] = 1;
 
     userSliders[0] = 1;
-    userSliders[1] = 2;
+    userSliders[1] = 1;
 
     userMinTime = 0;
     userMaxTime = 0;
@@ -51,9 +52,6 @@ function updateFrame(allData) {
                        return d3.min(d, function(d) {
                        return d3.min(d, function(d) {
                            return d.timestamp*1000; }) }) });
-
-    maxSliders[0] = numNodes;
-    maxSliders[1] = numMessages;
 
     grepCommand = $("#greptext").val()
 

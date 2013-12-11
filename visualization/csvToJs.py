@@ -12,17 +12,17 @@ import clusterer
 
 if len(sys.argv) == 1:
     args = json.load(sys.stdin)
-    numNodes = int(args[0])
+    numClusters = int(args[0])
     minTime =  int(args[1])
     maxTime =  int(args[2])
     grepMsg = args[3]
 elif len(sys.argv) == 4:
-    numNodes = 2;
+    numClusters = 2;
     minTime = 0;
     maxTime = calendar.timegm(time.gmtime());
     grepMsg = "";
 else:
-    numNodes = int(sys.argv[1])
+    numClusters = int(sys.argv[1])
     minTime =  int(sys.argv[2])
     maxTime =  int(sys.argv[3])
     grepMsg = sys.argv[4]
@@ -30,13 +30,13 @@ else:
 if(maxTime==minTime):
     maxTime = calendar.timegm(time.gmtime());
 clusterOutput = clusterer.run_clustering('../parsedData', \
-                                         numNodes, minTime, maxTime, grepMsg);
+                                         numClusters, minTime, maxTime, grepMsg);
 
 # TODO: Gather list of all files
 # fileList = glob.glob("../parsedData/*.csv");
-print clusterOutput;
 nodeList = clusterOutput['closest_nodes'];
 msgList = clusterOutput['matched_log_types'];
+totalNumNodes = clusterOutput['num_nodes'];
 
 def rowToKey(row):
     return row[0] + row[1];
@@ -96,15 +96,15 @@ for currNode in nodeList:
 
 # Create the 2-dimensional data. Structs at [nodeId][messageId]
 numMessages = len(uniqueIds);
-numNodes = len(nodeList);
-data = [ [[] for _ in range(numMessages) ] for _ in range(numNodes) ]; 
+numClusters = len(nodeList);
+data = [ [[] for _ in range(numMessages) ] for _ in range(numClusters) ]; 
 for d in flatData:
     data[d.nodeId][d.messageId].append(d);
 
 # Print all that out
 print "Content-Type: text/html\n"
-print '['
-for node_i in range(numNodes):
+print 'data = ['
+for node_i in range(numClusters):
     print '['
     for msg_i in range(numMessages):
         print '   ['
@@ -123,3 +123,4 @@ for node_i in range(numNodes):
         print '   ],'
     print '],'
 print '];'
+print 'totalNumNodes = ' + str(totalNumNodes) + ';'
