@@ -33,7 +33,13 @@ def get_common_str(log_msgs):
         common_str = ''
         for m in matched[:-1]:
             if m.b == 0 or m.b + m.size == len(i) or m.size > 1:
-                common_str += i[m.b:m.b + m.size]
+                beg_idx = m.b
+                end_idx = beg_idx + m.size
+                # A heuristic for decimal fractions such as 0.xxx
+                if i[end_idx - 2:end_idx] == '0.':
+                    end_idx -= 2
+                assert(end_idx >= beg_idx)
+                common_str += i[beg_idx:end_idx]
     return common_str
 
 
@@ -105,11 +111,11 @@ if __name__ == '__main__':
             with open(output_dir % node_id + '/log_%s_%s.csv' % k, 'wb') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(['filename', 'line_num', 'date']
-                        + ['v%d' % i for i in range(max_var_len)]
-                        + ['log_msg'])
+                        + ['log_msg']
+                        + ['v%d' % i for i in range(max_var_len)])
                 for log in v:
                     var_str = variables[log]
                     while len(var_str) < max_var_len:
                         var_str.append('')
-                    writer.writerow(list(k) + [log.date] + var_str + [log.log_msg])
+                    writer.writerow(list(k) + [log.date] + [log.log_msg] + var_str)
         print 'Done writing to CSV files.'
