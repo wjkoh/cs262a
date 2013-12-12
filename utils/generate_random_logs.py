@@ -26,11 +26,11 @@ if __name__ == '__main__':
                 random_log_type = first_row['filename'], '-' + first_row['line_num']
                 f.seek(0)  # To read from the beginning again
 
-                with open(os.path.join(node_dir, 'rand_%s_%s.txt' % random_log_type), 'w') as f:
-                    f.write(random_log_msg)
+                with open(os.path.join(node_dir, 'rand_%s_%s.txt' % random_log_type), 'w') as f2:
+                    f2.write(random_log_msg)
 
-                with open(os.path.join(node_dir, 'rand_%s_%s.csv' % random_log_type), 'wb') as f:
-                    writer = csv.DictWriter(f, fieldnames)
+                with open(os.path.join(node_dir, 'rand_%s_%s.csv' % random_log_type), 'wb') as f3:
+                    writer = csv.DictWriter(f3, fieldnames)
                     writer.writeheader()
                     for row in reader:
                         if random.random() <= probability:
