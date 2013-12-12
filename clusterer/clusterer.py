@@ -66,12 +66,8 @@ def read_dates_from_csv_file(fname):
                 date = datetime.datetime.strptime(row['date'],
                         '%Y-%m-%d %H:%M:%S.%f')
             except ValueError:
-                try:
-                    date = datetime.datetime.strptime(row['date'],
-                            '%Y-%m-%d %H:%M:%S')
-                except ValueError:
-                    print fname, row, row['date']
-                    date = datetime.datetime.now()
+                date = datetime.datetime.strptime(row['date'],
+                        '%Y-%m-%d %H:%M:%S')
             dates.append(date)
             timestamps.append(calendar.timegm(date.utctimetuple()))
     return dates, timestamps

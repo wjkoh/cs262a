@@ -21,6 +21,7 @@ function createTimeSlider() {
     range: true,
     min: minTime,
     max: maxTime,
+    step: 60,
     values: [ userMinTime, userMaxTime ],
     slide: function(event,ui) {updateSliderText() }
   });
