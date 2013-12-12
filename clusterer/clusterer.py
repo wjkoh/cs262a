@@ -66,8 +66,12 @@ def read_dates_from_csv_file(fname):
                 date = datetime.datetime.strptime(row['date'],
                         '%Y-%m-%d %H:%M:%S.%f')
             except ValueError:
-                date = datetime.datetime.strptime(row['date'],
-                        '%Y-%m-%d %H:%M:%S')
+                try:
+                    date = datetime.datetime.strptime(row['date'],
+                            '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    print fname, row, row['date']
+                    date = datetime.datetime.now()
             dates.append(date)
             timestamps.append(calendar.timegm(date.utctimetuple()))
     return dates, timestamps
@@ -99,6 +103,10 @@ def extract_feature_vectors(node_dirs, start_time=0, end_time=float('inf')):
                 try:
                     dates, timestamps = read_dates_from_csv_file(csv_file)
                 except IOError:
+                    fvs_by_node[node_dir][i] = 0
+                    continue
+
+                if len(timestamps) == 0:
                     fvs_by_node[node_dir][i] = 0
                     continue
 
