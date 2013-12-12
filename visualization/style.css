@@ -22,6 +22,7 @@ body {
 }
 
 .logtext {
+    width: 350px;
     font: 14px sans-serif;
     color: white;
     border: none;

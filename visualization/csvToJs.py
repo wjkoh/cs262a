@@ -11,6 +11,16 @@ import time
 sys.path.append('../')
 import clusterer
 
+def parse_num(num):
+    try:
+        return int(num)
+    except ValueError:
+        try:
+            return float(num)
+        except ValueError:
+            pass
+    return num
+
 if len(sys.argv) == 1:
     args = json.load(sys.stdin)
     numClusters = int(args[0])
@@ -80,8 +90,17 @@ for currNode in nodeList:
         except:
             continue;
 
+        with open(filename) as fin:
+                nl = sum(1 for line in fin)
+
         # Convert CSV object into LogData struct
-        for l in lines:
+        import math
+        truncation = 1
+        if nl > 5000:
+            truncation = math.floor(nl / 5000);
+        for line_i,l in enumerate(lines):
+            if line_i % truncation != 0:
+                continue
             # Get unique ID for this message
             key = rowToKey(l)
             if key not in uniqueIds:
@@ -139,6 +158,7 @@ sys.stdout = Cacher(cacheFilename)
 # Print all that out
 print "Content-Type: text/html\n"
 print 'data = ['
+uniqueVals = []
 for node_i in range(numClusters):
     print '['
     for msg_i in range(numMessages):
@@ -147,7 +167,12 @@ for node_i in range(numClusters):
             i = 0;
             for val in d.values:
                 if not val:
-                    val = "0"
+                    val = 0
+                val = parse_num(val)
+                if isinstance(val, str):
+                    if val not in uniqueVals:
+                        uniqueVals.append(val)
+                    val = uniqueVals.index(val)
                 print '      ' + \
                       'new Data(' + str(d.unixtime) + ', ' +  \
                                     str(val) + ', ' +      \
