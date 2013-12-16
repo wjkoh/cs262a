@@ -1,8 +1,7 @@
 # make -f Makefile_pdflatex
 
-R = template
-STY = *.cls
-FIG = images/samplefigure.pdf
+R = paper
+STY = style/*.cls
 
 pdf: $(R).pdf
 
@@ -11,7 +10,7 @@ $(R).bbl: $(R).bib
 	bibtex $(R)
 	pdflatex $(R)
 
-$(R).pdf: *.tex $(STY) $(FIG) $(R).bbl
+$(R).pdf: *.tex $(STY) $(R).bbl
 	pdflatex $(R)
 
 clean:
