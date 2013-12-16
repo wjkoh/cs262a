@@ -44,3 +44,5 @@ tmp
 parsedData
 # here's where the visualization cache goes
 visualization/cache/*
+# fake anomaly data
+data/anomaly_sim
