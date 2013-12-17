@@ -41,21 +41,10 @@ TODO: Get the numbers from this simulation.
 
 \end{abstract}
 
-\begin{CRcatlist}
-  \CRcat{I.3.3}{Computer Graphics}{Three-Dimensional Graphics and Realism}{Display Algorithms}
-  %CRcat{I.3.7}{Computer Graphics}{Three-Dimensional Graphics and Realism}{Radiosity};
-\end{CRcatlist}
-
-\keywordlist
-
 %% Use this only if you're preparing a technical paper to be published in the 
 %% ACM 'Transactions on Graphics' journal.
 
 \TOGlinkslist
-
-%% Required for all content. 
-
-\copyrightspace
 
 \section{Introduction}
 
@@ -99,14 +88,14 @@ See Figure~\ref{fig:ganglia} for a screenshot of the amount of data shown for a 
 
 \begin{figure*}[p]
     \centering
-    \includegraphics[width=0.9\textwidth]{images/ganglia.png}
+    \includegraphics[width=0.85\textwidth]{images/ganglia.png}
     \caption{Screenshot of Ganglia (image courtesy of Wikipedia). This information shows various metrics for a single node.}
     \label{fig:ganglia}
 \end{figure*}
 
 \begin{figure*}[p]
     \centering
-    \includegraphics[width=0.9\textwidth]{images/rrdtool.png}
+    \includegraphics[width=0.85\textwidth]{images/rrdtool.png}
     \caption{A screenshot of RRDtool attempting to coherently display a lot of information to the user, but ending up extremely cluttered.\protect\footnotemark}
     \label{fig:rrdtool}
 \end{figure*}
@@ -227,7 +216,7 @@ However, in our experience, the interaction is much simpler on a large display.
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.7\columnwidth]{images/screenshot_controls.png}
-    \caption{User controls}
+    \caption{The configuration options available to the user via our web framework. The user can change these options at interactive rates.}
     \label{fig:ss_controls}
 \end{figure}
 
@@ -238,35 +227,71 @@ we have not yet implemented this algorithm.
 
 \section{Results}
 
+The success of our system depends on three axes: clustering performance, speed, and user friendliness.
+The third axis is the most difficult to evaluate, but we currently have one user of the system who is excited to use and improve it.
+We formally evaluate the other two axes here.
+
 \subsection{Anomaly Detection}
-We set the metric for anomaly detection as follow: How many clusters are required until anomalous
-node in its own cluster? In the best case of this scenario the number of cluster always should be
-two if there is only one type of anomalies at a time.
+\label{subsec:results:anomaly}
+The metric of success for anomaly detection is as follow: assuming only one node is anomalous, how many clusters are required until that node is in its own cluster?
+The best-case scenario is two clusters: one for each of the $n-1$ well-performing nodes, and another for the anomalous node.
 
-In Figure~\ref{fig:anomaly} you can see the performance of our anomaly detection and it shows that
-our system can tell anomalies such as a failing or slow node under the interference like random
-noises. The system works well even when 50\% of the data is garbage, i.e., randomly generated logs.
+We simulate five experiments on a seven node cluster using six nodes of real data and one node of simulated anomalous data.
+The five anomalies tested are:
+\begin{enumerate}
+\item
+\textbf{Failed node}
 
-\begin{figure}[p]
+One node fails when the algorithm is 80\% to completion, and all other nodes run to completion.
+\item
+\textbf{Node 5\% slower}
+
+One node runs 5\% slower than the speed of the other nodes
+\item
+\textbf{Node 1\% slower}
+
+One node runs 1\% slower than the speed of the other nodes
+\item
+\textbf{50\% of log is junk}
+
+Half of the messages in each log file are random, both in time and in value. One node is still 5\% slower. Can the anomalous node be detected?
+\item
+\textbf{99\% of log is junk}
+
+Only one out of every hundred messages is real. One node is still 5\% slower. Can the anomalous node be detected? Note that the filesize here is bloated to 100 times the actual log data.
+\end{enumerate}
+
+Figure~\ref{fig:anomaly} shows the performance of our clustering on each of the above tests.
+Most of the clustering successfully detects an anomaly with just two clusters.
+The two failure cases are a 1\% slowdown of a node, and when 99\% of the log is not useful information and information is outputted at random times.
+We assume these cases are rare, and are satisfied with successfully clustering a 5\% slowdown and 50\% junk log data.
+
+\begin{figure}[t]
     \centering
     \includegraphics[width=1.0\columnwidth]{images/anomaly.pdf}
-    \caption{Anomaly detection}
+    \caption{Results for anomaly detection via clustering. The x axis shows different simulation evaluations; the yaxis is the number of clusters required until the anomalous node is in its own cluster. Two clusters is the best-case scenario. See Section~\ref{subsec:results:anomaly} for a description of each of the simulation numbers.}
     \label{fig:anomaly}
 \end{figure}
 
-If we were able to find a ground-truth log file with labeled anomalies, we could compare our error
-rates to those presented in papers by Wei Xu et al. Unfortunately, we couldn't find any publicly
-accessible log database.
+We would like to eventually compare our algorithm with the results of Xu and collaborators \cite{Xu09}.
+Unfortunately, all of their results used private proprietary logs, so we could not do a direct comparison.
 
-\subsection{Timing Information}
-We ran on 500,000 messages per node and on average 30MB of data were sent to the HTTP Server per
-node. Visualization took on the client side so the computation cost of visualization doesn't slow
-down the server. In Figure~\ref{fig:timings} you can see basic timing information of our system.
+\subsection{Timing}
+\label{subsec:results:timing}
+Our log files had over 500,000 messages per node.
+After compression, 30MB of data were sent to the master server per node.
+The visualization was served to the client via an HTTP server, and all javascript visualizations were computed client-side, so the only cost of visualization is generating and transferring the data.
 
-\begin{figure}[p]
+Figure~\ref{fig:timings} shows basic timing information of our system.
+From this, it is clear that the per-node cost is small: less than two seconds to compute features per-node.
+This data is then passed on to the master node, which preprocesses everything and prepares to send it to the client via HTTP.
+This preprocessing is the bottleneck in our unoptimized implementation.
+Finally, when the user changes the parameters with the web interface, recomputing the clusters takes an average of $.2$ seconds.
+
+\begin{figure}[t]
     \centering
     \includegraphics[width=1.0\columnwidth]{images/timing.pdf}
-    \caption{Timing information}
+    \caption{Timing information. The first column is the per-node log parsing and feature extraction. The second column is the work the master server must do. The last column is the time a user must wait until an updated visualization is displayedafter changing the configuration. See Section \ref{subsec:results:timing} for more details.}
     \label{fig:timings}
 \end{figure}
 
@@ -307,8 +332,7 @@ features preprocessing. Lastly, it would be great if our system can cluster logs
 elaborate features.
 
 \section*{Acknowledgements}
-The authors appreciate Ling Huang for his helpful advices and Sean Arietta for providing the log
-data gathered from his research project.
+The authors would like to thank Ling Huang for helpful discussions and Sean Arietta for providing us with the log data gathered from his research project.
 
 
 \bibliographystyle{style/acmsiggraph}

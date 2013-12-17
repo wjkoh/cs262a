@@ -267,8 +267,6 @@
     \selectfont
 }
 
-\@ACMsetninepoint
-
 % Section and subsection environment tweaks.
 
 \newcommand{\@ACMsectionfont}{}
