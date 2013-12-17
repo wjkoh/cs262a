@@ -79,17 +79,30 @@ With a large enough cluster, this will require focusing the user’s attention o
 of the system state. This will require detecting anomalies, which in turn requires a
 constantly-evolving model of what the “normal” state of the system is.
 
+Our system is open source and available on github~\footnote{\url{http://www.github.com/wjkoh/cs262a}}.
+
 
 \section{Related Work}
-% A description of previous papers related to your project.
+Given the wide range of distributed applications, system log analysis has been a prominent research area for decades.
+Unfortunately, given the available visualization tools in the past, none are adequate for off-the-shelf use.
+We divide the related work into two sections: system state analysis and system log analysis.
+The system state refers to aggregating data about the statistics of resource usage in a system, agnostic to the application.
+System logs are arbitrary print statements in a piece of code, distributed across one or more nodes.
 
-\begin{figure*}[p]
+\subsection{System State Analysis}
+Ganglia\footnote{\url{http://www.ganglia.info}} is a system monitoring system which can handle up to 2,000 nodes and aggregate statistics in real-time~\cite{Massie04}.
+It requires installing software on each running node and can only handle predefined metrics; it does not allow user-defined metrics and does not utilize system logs.
+The data is not clustered either, so either all nodes are visualized, or all nodes are aggregated.
+Finally, it is far from interactive: simple options such as setting a time window require many clicks.
+See Figure~\ref{fig:ganglia} for a screenshot of the amount of data shown for a single node.
+
+\begin{figure*}[h]
     \centering
     \includegraphics[width=0.9\textwidth]{images/ganglia.png}
-    \caption{Screenshot of Ganglia\protect\footnotemark}
+    \caption{Screenshot of Ganglia (image courtesy of Wikipedia). This information shows various metrics for a single node.}
     \label{fig:ganglia}
 \end{figure*}
-\footnotetext{\url{http://en.wikipedia.org/wiki/File:ScalableGridEngineGanglia2.png}}
+
 \begin{figure*}[p]
     \centering
     \includegraphics[width=0.9\textwidth]{images/rrdtool.png}
@@ -98,44 +111,94 @@ constantly-evolving model of what the “normal” state of the system is.
 \end{figure*}
 \footnotetext{\url{http://oss.oetiker.ch/rrdtool/gallery/index.en.html}}
 
-There are many good system monitor solutions out there including Ganglia~\cite{Massie04} and Munin
-which is based on RRDtool~\cite{Oetiker99}. However, as you can see in Figure~\ref{fig:ganglia} and
-Figure~\ref{fig:rrdtool}, the visualizations become harder to detect anomalies in the system as the
-number of nodes increases.
+Munin, based on RRDtool, is similar to Ganglia: after installation on each node, it automatically presents a visualization of the system status~\cite{Oetiker99}.
+As is evident from Figure~\ref{fig:rrdtool}, the visualizations is extremely dense and illegible as the number of nodes increase.
 
-We found Wei Xu and collaborators~\cite{Xu09} made very good system of detecting anomalies by mining
-log data. We adopted their machine learning approach including their feature specifications in order
-to create an intelligent visualization system.
+We use ideas from these system state visualizations, and apply them to system logs.
+We also recognize that viewing all logs makes an illegible visualization, viewing one node at a time is inefficient, and aggregating all nodes into a single server status hides any anomalous behavior.
+
+\subsection{System Log Analysis}
+
+Wei Xu and collaborators~\cite{Xu09} uses machine learning to detect anomalies by mining log data.
+When an anomaly is detected, a decision tree visualization is presented to the user which attempts to explain why it is an anomaly.
+This setup, while useful, is fundamentally untrustable: no algorithm can successfully detect all anomalies, and the user will eventually have to resort to command-line \texttt{grep}.
+We adopt their machine learning features for our clustering algorithm.
+
+HP Operations Analytics\footnote{\url{http://www8.hp.com/us/en/software-solutions/operations-analytics-operations-analysis/}} provides many similar features to our work, including interactive time-window zooming.
+It does not seem to cluster any data, nor does it focus on software bugs, but instead analyze single-node server issues.
+It seems to require modifying source code to work with their log analysis system, which may limit its applicabilty.
+Unfortunately, it is also closed-source proprietary software so we are not able to test out its effectiveness.
+
+Seaview has the closest goals to ours~\cite{hangalseaview}, and provide similar visualizations.
+However, they do not work with arbitrary log types (notably, log messages with multiple variables), nor does it extend to multiple nodes or large amounts of data.
+They include no machine learning or reduction of the amount of data shown, other than a planned \texttt{grep} text search.
+
+Makanju and collaborators present spatio-temporal clustering of log data as well \cite{makanju2012spatio}.
+Their method does not seem to be, nor claim to be, interactive.
+We find their clustering method and features to be complementary to ours, and it would fit cleanly in our interactive system.
 
 \section{Methods}
-% A detailed explanation of the techniques and algorithms you used to solve the problem.
 
-We have a system which generates such log files using the Google Logging Library
-(glog)\footnote{\url{https://code.google.com/p/google-glog/}}. Our goal is to create a generic
-visualization library for glog, with emphasis on this system. Theoretically, anybody using glog in a
-distributed framework should be able to work with the visualizations out-of-the-box. Here is the
-summary of our algorithm:
+We automatically extract the source code line which printed each log message, the time it was printed, the node which generated it, and the variable part of each log message.
 
-\paragraph{Algorithm Summary}
+Our algorithm can be summarized as follows:
+
 \begin{enumerate}
     \item Compute per-node features
-        \begin{itemize}
-            \item Message count vector
-            \item Statistics across time
-            \item Each node computes its own features
-        \end{itemize}
-    \item Select k most representative nodes
-        \begin{itemize}
-            \item Using distributed k-means clustering
-            \item User interactively chooses k
-        \end{itemize}
+    \item Perform distributed k-means clustering
     \item Display interactive visualization
-        \begin{itemize}
-            \item Client processes visualization
-            \item Web server clusters on-demand
-            \item Server communicates through Apache server
-        \end{itemize}
 \end{enumerate}
+
+We desribe each of these in detail below.
+
+\subsection{Feature Extraction}
+Each node computes its own features, and passes on the feature vector as well as raw log data to the master server.
+
+Following the example of Xu and collaborators \cite{Xu09}, we extract a message count vector in the time window requested by the user.
+The message count vector is the number of unique times each message was printed.
+This is a strong feature for failing or slowing nodes.
+The state ratio vector compares how many times one type of message was printed compared to similar ones; for example, the ratio of file opens to file closes.
+We found that the state ratio vector was not useful for our log data, and so we do not compute it to save CPU time.
+
+Using the extracted variables, we compute basic statistics about each type of message.
+In a given time window, we compute the:
+\begin{enumerate}
+\item mean,
+\item standard deviation,
+\item slope of a linear regression,
+\item z-score, and
+\item r-value.
+\end{enumerate}
+These would indicate anomalies involving, for example, a diverging residual in a machine learning application, a section of code which takes too long to run, and a message which keeps working on the same file rather than working on new files.
+
+\subsection{Clustering}
+    %\item Perform distributed k-means clustering
+
+\subsection{Visualization}
+    %\item Display interactive visualization
+
+%         \begin{itemize}
+%             \item Message count vector
+%             \item Statistics across time
+%             \item Each node computes its own features
+%         \end{itemize}
+%     \item Select k most representative nodes
+%         \begin{itemize}
+%             \item Using distributed k-means clustering
+%             \item User interactively chooses k
+%         \end{itemize}
+%     \item Display interactive visualization
+%         \begin{itemize}
+%             \item Client processes visualization
+%             \item Web server clusters on-demand
+%             \item Server communicates through Apache server
+%         \end{itemize}
+% 
+
+\section{Implementation}
+We identify each log message by the node and source code line that generated it.
+We assume that all logs are generated using the Google Logging Library (GLOG)\footnote{\url{https://code.google.com/p/google-glog/}} in order to know which source line generated which log message.
+This assumption can be dropped using the mining algorithm of Xu and collaborators~\cite{Xu:2009:OSP:1674659.1677125}.
 
 \subsection{Log Parser}
 We mainly used Python for implementing our log parsing system. Google Logging Library provides a
