@@ -27,12 +27,16 @@
 
 \begin{abstract}
 
-In this paper we present the way of visualizing large amount of system log data into single screen.
-These log files from distributed systems can be tens of or hundreds of megabytes, and impossible to
-parse without tools. Due to the amount of data we cluster machines by similar trends and also
-pre-process the data in order to achieve real-time clustering according to user inputs. By doing so
-we end up separating actual anomalous nodes from normal ones and can show the information in
-visualization clearly.
+We present a visualization interface to assist system administrators in searching system logs.
+Even with current regular expression matchers such as \texttt{grep}, the amount of log data is difficult for humans to understand.
+We augment \texttt{grep} with a visualization of the matched patterns.
+To further reduce the amount of information displayed, we cluster similarly-performing nodes and only show a single node representative of the entire cluster.
+The user can then interactively search the log, zoom in on a certain time window, and choose the number of clusters.
+%This means that at the most ``zoomed out'' state (no time window specified, no search patters, and no clustering), the raw log data is displayed.
+Our simulations show that our clustering is effective and our system is fast:
+the clustering successfully isolates anomalously-performing nodes in a variety of situations;
+the visualization can interactively visualize hundreds of millions of log messages across a hundred nodes in real-time.
+TODO: Get the numbers from this simulation.
 
 \end{abstract}
 
@@ -53,28 +57,30 @@ visualization clearly.
 \copyrightspace
 
 \section{Introduction}
-% An explanation of the problem and the motivation for solving it.
 
-The gears of a distributed system are constantly moving, and the system administrator uses log files
-to understand what goes on underneath. They are also spread out over many machines and many places in
-these machines.
+The gears of a distributed system are complex and constantly moving.
+A system administrator uses log files to understand the underlying structure and detect anomalous behavior.
+These logs are large, distributed across many filesystems, and hard to understand even with today's tools.
 
-Our goal is to aggregate this data into a visualization that can be easily checked by the system
-administrator. It should take no more than a glance to understand the system state, failures, or any
-other desired information. This will allow the system administrator to regularly check the state
-without setting up special scripts which parse the logs. For example, the system administrator
-should be able to view the progress of a task while away from the office and without access to a
-command-line.
-
-The research problem is figuring out how to display megabytes of log data into a visually and
-interactively simple interface and spot abnormalities without any additional effort.
+Our goal is to aggregate the log data into a visualization that can be easily understood by the system administrator.
+The two primary use cases are:
+\begin{enumerate}
+\item searching through system logs to find software bugs or hardware failures, and
+\item viewing the current system state on-the-go without access to a command line.
+\end{enumerate}
+To this end, our system contributes the following features:
+\begin{enumerate}
+\item \textbf{trustable}: the user is able to view the raw data at the most ``zoomed out'' state;
+\item \textbf{fast and distributed}: the proprocessing primarily occurs at each node, with a single central node aggregating preprocessed data; and
+\item \textbf{interactive}: the user can adjust the paramaters of the visualization at interactive speeds.
+\end{enumerate}
 
 With a large enough cluster, this will require focusing the user’s attention on “interesting” parts
 of the system state. This will require detecting anomalies, which in turn requires a
 constantly-evolving model of what the “normal” state of the system is.
 
 
-\section{Related Works}
+\section{Related Work}
 % A description of previous papers related to your project.
 
 \begin{figure*}[p]
