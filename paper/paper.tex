@@ -21,6 +21,7 @@
 \teaser{
     \includegraphics[width=1.0\textwidth]{images/screenshot_full.png}
     \caption{Our visualization displays arbitrary system log data by parsing the variable parts of each log message. Each row contains messages from a single node. Each column is a certain type of message. Each point is a single log message. The x axis is time; the y axis is the value of the extracted variable. The colors indicate multiple variables in the same message. For example, column two has two colors: blue is the number of valid patches, and red is the number of invalid patches. Notice here that five nodes performed similarly (row 2), whereas one node (row 1) is performing more slowly, and thus the number of log messages is sparse. }
+    \label{fig:teaser}
 }
 
 \maketitle
@@ -96,7 +97,7 @@ The data is not clustered either, so either all nodes are visualized, or all nod
 Finally, it is far from interactive: simple options such as setting a time window require many clicks.
 See Figure~\ref{fig:ganglia} for a screenshot of the amount of data shown for a single node.
 
-\begin{figure*}[h]
+\begin{figure*}[p]
     \centering
     \includegraphics[width=0.9\textwidth]{images/ganglia.png}
     \caption{Screenshot of Ganglia (image courtesy of Wikipedia). This information shows various metrics for a single node.}
@@ -106,7 +107,7 @@ See Figure~\ref{fig:ganglia} for a screenshot of the amount of data shown for a 
 \begin{figure*}[p]
     \centering
     \includegraphics[width=0.9\textwidth]{images/rrdtool.png}
-    \caption{Screenshot of RRDtool\protect\footnotemark}
+    \caption{A screenshot of RRDtool attempting to coherently display a lot of information to the user, but ending up extremely cluttered.\protect\footnotemark}
     \label{fig:rrdtool}
 \end{figure*}
 \footnotetext{\url{http://oss.oetiker.ch/rrdtool/gallery/index.en.html}}
@@ -172,28 +173,27 @@ In a given time window, we compute the:
 These would indicate anomalies involving, for example, a diverging residual in a machine learning application, a section of code which takes too long to run, and a message which keeps working on the same file rather than working on new files.
 
 \subsection{Clustering}
-    %\item Perform distributed k-means clustering
+We perform k-means clustering in the feature vector space~\cite{kmeans,Lloyd82}.
+With a small number of nodes (on the order of tens), the clustering can be performed on a single machine quickly.
+On more nodes, a distributed $k$-means algorithm is required, which can either be exact~\cite{jin2006fast} or approximate and slower~\cite{kanungo2002local}.
+Since the clustering will occur each time the user updates the parameters of the visualization, it is essential that it is fast.
+
+Once the desired number of centroids are found, we compute the node which is closest to the centroid in a least-squares sense and display only that node.
+Therefore, thhe visualization master server need only receive $O(k)$ data to pass on to the user, linear with the number of centroids, instead of with the total number of nodes.
 
 \subsection{Visualization}
-    %\item Display interactive visualization
+The master server collects the data from each node and uses an HTTP Apache Server to pass the data on to the client.
+We use d3.js to visualize the data~\cite{D311}.
+We use a scatterplot where each point is a raw log message, the x axis is time, and the y axis is the parsed variables (see Figure~\ref{fig:teaser}).
+Mousing over a scatter point displays the text of the raw log message.
+Each row in the visualization is the nearest node to the centroid of the $k$-means clustering.
+Each column is a specific type of log message, identified by its line in the source code.
 
-%         \begin{itemize}
-%             \item Message count vector
-%             \item Statistics across time
-%             \item Each node computes its own features
-%         \end{itemize}
-%     \item Select k most representative nodes
-%         \begin{itemize}
-%             \item Using distributed k-means clustering
-%             \item User interactively chooses k
-%         \end{itemize}
-%     \item Display interactive visualization
-%         \begin{itemize}
-%             \item Client processes visualization
-%             \item Web server clusters on-demand
-%             \item Server communicates through Apache server
-%         \end{itemize}
-% 
+The user can interactively change the time window, the number of desired clusters, and the regular expression pattern. With each change, the clusters are recomputed and new data is shown. Clustering is only performed on the log messages which match the regular expression pattern in the given time window.
+
+Because the visualization gets cluttered if there are too many scatter points in a single graph, each graph at most shows 5,000 messages, each one evenly spaced in time.
+Zooming in (narrowing the time range) allows finer sampling of the log messages.
+
 
 \section{Implementation}
 We identify each log message by the node and source code line that generated it.
@@ -201,83 +201,42 @@ We assume that all logs are generated using the Google Logging Library (GLOG)\fo
 This assumption can be dropped using the mining algorithm of Xu and collaborators~\cite{Xu:2009:OSP:1674659.1677125}.
 
 \subsection{Log Parser}
-We mainly used Python for implementing our log parsing system. Google Logging Library provides a
-consistent log format so we were able to build a parser easily using Python's regular expression
-library. After parsing we need to group every log message by its type and extract nominal and
+GLOG provides a consistent log format so we were able to build a parser easily using Python's regular expression
+library. After parsing we need to group every log message by its message type and extract nominal and
 quantitative data from the messages.
 
-First of all, we group log messages by its source file name and line number. After grouping them
-into same types, we could separate dynamic parts of messages from static parts using text difference
-algorithms. In Figure~\ref{fig:extracting_data}, you can see an example of extracting data. Since
-the dynamic part of log messages will change over time, we can tell the exact part if we have a
-large enough amount of log messages of the same type. After detecting dynamic parts, we can simply
-parse the part of message strings into integer or floating number if quantitative and string if
-nominal.
+First, we group log messages by its source file name and line number.
+We then separate dynamic parts of messages from static parts using Ratcliff/Obershelp pattern recognition \cite{pattermatch}.
+If the dynamic part is a string instead of number (such as a filename), we simply discretize the value.
+This will succeed in detecting if an anomalous node is opening the same file repeatedly, and other similar issues, but will fail on text data that is semantically meaningful.
 
-\subsection{Clusterer}
-We also used Python, such as NumPy/SciPy and scikit-learn, for implementing our clustering system.
-Due to the huge amount of data we need to preprocess the data in some way to boost the speed of the
-clustering up to an interactive rate. As for clustering we used simple k-means clustering
-\cite{kmeans,Lloyd82} of the scikit-learn library \cite{scikit-learn} and it turned out the
-computation speed is quite good. However, the problem is in the feature extraction. We want to
-extract features only from the user-specified time range, i.e., we want to apply clustering on only
-features within the range. The range will change continuously by user inputs so we need to be able
-to calculate features in real time in order to achieve our goal, an interactive visualization.
-
-We mainly used a message count vector~\cite{Xu09} for our feature vectors and we change the domain
-in most cases just by time. Thus, we first came up with data sorted in terms of time. However, just
-sorted data structure couldn't help that much because the size of data is still large and it doesn't
-fit into the main memory at all. Thus, the data should be stored in a secondary storage, which means
-a hard disk drive. Due to the poor performance of random access of hard disk drives we couldn't get
-much improvements using the sorted data structure.
-
-Thus, to optimize further we introduced prefix sums of feature vectors. Prefix sums can help
-calculating partial sums because we just need to subtract the first element from the last element of
-the range to get a sum of values within the range.  We may use Fenwick tree \cite{Fenwick94} or
-other advanced data structures but we satisfied with our current performance, which took about 0.4s
-per each clustering.
+\subsection{Feature Extraction and Clustering}
+The parameters requested by a user affect the input to the clustering, so we need to be able to compute feature extraction at interactive rates.
+Our current implementation only uses the message count vector~\cite{Xu09} for our feature vector to achieve such rates.
+Our message count vector computation uses prefix sums, where each message at time $t=T$ knows the message count in the range $t \in [0, T]$.
+To find the message count vector in a certain timerange $t \in [t0, t1]$, we find the closest message after $t=t0$ and the closest message before $t=t1$, and subtract the prefix sum at each of those times.
+This results in $t \in [0,t1] - [0,t0] = t \in [t0,t1]$, the exact range we want.
+Similar optimizations can be performed for the simple statistical features.
 
 \subsection{Visualization}
-\begin{figure*}[p]
-    \centering
-    \includegraphics[width=0.9\textwidth]{images/screenshot_plot.png}
-    \caption{Data points and raw log messages}
-    \label{fig:ss_plot}
-\end{figure*}
 
-\begin{figure}[p]
+We used d3.js~\cite{D311} and jQuery UI libraries for our user interfaces.
+The front end of our framework is a web-based dashboard, enabling easy viewing from a mobile device while on-the-go.
+However, in our experience, the interaction is much simpler on a large display.
+
+\begin{figure}[t]
     \centering
     \includegraphics[width=0.7\columnwidth]{images/screenshot_controls.png}
     \caption{User controls}
     \label{fig:ss_controls}
 \end{figure}
 
-\begin{figure}[p]
-    \centering
-    \includegraphics[width=1.0\columnwidth]{images/extracting_data_1.pdf}
-    \includegraphics[width=1.0\columnwidth]{images/extracting_data_2.pdf}
-    \caption{Text processing}
-    \label{fig:extracting_data}
-\end{figure}
-
-We used D3~\cite{D311} and jQuery UI libraries for our user interfaces. The front end of our
-framework is a web page so that you can explore it using any web browser supporting JavaScript and
-SVG. Thus, we can say that we achieved one of our project goals, which is that implementing a system
-that easily accessible from remote location using even mobile devices such as a smartphone.
-
-In Figure \ref{fig:ss_controls} you can see the user controls of our visualization. The controls
-basically consist of three sliders and one text box and each of them give an user a degree of
-freedom in each dimension, such as time, the number of clusters, and the number of message types.
-
-We used one range control for setting time range and two slider control for setting the number of
-clusters to find and the number of message types to display, respectively. This system can response
-to user inputs at an interactive rate because we speed up the clustering process and now it takes
-only a half second as mentioned earlier.
+In Figure \ref{fig:ss_controls} you can see the user controls of our visualization.
+The controls allow control of the time window, the number of clusters, and the regular expression command.
+There is also control over the number of message types displayed, which should only display the most representative message types;
+we have not yet implemented this algorithm.
 
 \section{Results}
-% The visualizations your system produces and data to help evaluate your approach. For example you
-% may include running times, or the time users typically spend generating a visualization using your
-% system.
 
 \subsection{Anomaly Detection}
 We set the metric for anomaly detection as follow: How many clusters are required until anomalous
