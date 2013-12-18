@@ -313,21 +313,21 @@ The failures are then in the variables, not the existence of the message.
 
 We have presented a system for visualizing arbitrary log files.
 The log files are automatically and distributedly parsed, features are computed per node, and the results are visualized in an easy-to-use web interface.
-We cluster similarly-performing nodes into a single visualization to abstract away redundant data, if the user desires.
+We cluster similarly-performing nodes into a single visualization to abstract away redundant data.
 
 The visualization has a spectrum of parameters.
 On one end of this spectrum, the raw log data is shown; on the other end, a single graph shows the most representative state of the system.
-The importance of this point is \emph{trustworthiness} of the visualization: no data is hidden from the user.
+This is important to maintain \emph{trustworthiness} of the visualization: no data is hidden from the user.
 
 Our visualization is still extremely primitive.
 Users may have no intuition as to why two clusters are separated.
 Displaying a cluster confidence may assist in telling the user when two clusters are not very different.
-On the other hand, if two clusters should be different (such as in the case of a 1\% slowdown of a node), we would want to tell the user more information about why they were clustered differently.
+On the other hand, if two clusters should be different, we would want to provide an explanation to the user similar to the decision tree visualization of Xu and collaborators \shortcite{Xu09}.
 As is, it would be very hard for a user to notice a 1\% slowdown in a node.
 
-We would like to compute more elaborate features for the clustering, including higher-order statistics.
+We would like to compute more representative features for the clustering, including higher-order statistics.
 However, as the feature complexity increases, the interactivity decreases.
-Finding a middle-ground between interactivity and complexity is an open problem which we are not sure how to address.
+Finding a middle-ground between interactivity and complexity is an difficult problem: we must be able to compute all of the features without touching all of the data.
 
 Finally, we would need a more thorough evaluation of our visualization.
 Some questions we have are:
@@ -335,6 +335,7 @@ Some questions we have are:
     \item is a scatterplot the best visualization choice?
     \item are we able to successfully segregate other types of anomalies in different clusters?
     \item can multiple messages be aggregated into the same plot?
+    \item what additional information would assist the human in understanding the visualization?
 \end{enumerate}
 
 There is a lot to be desired before our system is usable in the wild.
