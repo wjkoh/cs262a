@@ -11,7 +11,7 @@
 
 \title{Interactive Visualization for System Log Analysis}
 
-\author{Woojong Koh and Armin Samii\thanks{e-mail:\{wjkoh,samii\}@berkeley.edu}\\University of California, Berkeley}
+\author{Armin Samii and Woojong Koh\thanks{e-mail:\{samii,wjkoh\}@berkeley.edu}\\University of California, Berkeley}
 \pdfauthor{Armin Samii and Woojong Koh}
 
 \keywords{visualization, log, data mining, clustering}
@@ -186,7 +186,7 @@ Zooming in (narrowing the time range) allows finer sampling of the log messages.
 \section{Implementation}
 We identify each log message by the node and source code line that generated it.
 We assume that all logs are generated using the Google Logging Library (GLOG)\footnote{\url{https://code.google.com/p/google-glog/}} in order to know which source line generated which log message.
-This assumption can be dropped using the mining algorithm of Xu and collaborators~\cite{Xu:2009:OSP:1674659.1677125}.
+This assumption can be dropped using the mining algorithm of Xu and collaborators~\cite{XuOSP}.
 
 \subsection{Log Parser}
 GLOG provides a consistent log format so we were able to build a parser easily using Python's regular expression
@@ -297,44 +297,54 @@ We have not found it necessary to use distributed or approximate $k$-means clust
     \label{fig:timings}
 \end{figure}
 
+\section{A Note on the Data}
 
-\section{Discussion}
-% What has the audience learned about visualization from your work?
+Our goal for this project was to assist in analyzing a specific source of log files, which was a machine learning algorithm on terabytes of data.
+The machine learning algorithm used about 80 processes, each with its own log file, and spread over around a dozen machines.
+There are regular failures which are currently cumbersome to find and debug.
+At the same time, we kept our system general enough to work on other types of log files, particularly one with many more than a dozen nodes.
 
-The log data we used in this project came from the system which looks through terabytes of Google
-Street View data and uses them for various machine learning tasks. It uses about 80 processes, each
-process with its own log file, and spread over around a dozen machines. There are regular failures
-which are currently cumbersome to find and debug.
+For this particular application, we believe our system can immensely simplify the analysis of the log data.
+Diverging residuals, crashed nodes, and network failures are the common failure cases, and our system can capture all of these.
+While other log analysis research often focuses on analysis of a \emph{system} \cite{XuOSP,Xu09}, we also focus on analysis of an \emph{algorithm} which periodically logs its progress.
+The failures are then in the variables, not the existence of the message.
 
-We wanted to create a responsive system which visualizes the state of the system in real-time, is
-robust to errors, and can display an arbitrary number of nodes. Not all nodes will be displayable on
-a single screen, so the system had to be able to determine areas of interest (e.g. failed nodes,
-slow nodes, or completed tasks) in the visualization and direct the user’s attention there. Our
-anomaly detection built on Wei Xu's in several ways: (1) their work does not use timestamps, which
-we believe are vital to understanding the system’s state; (2) their work intentionally ignores the
-ordering of log messages, and instead pays attention only to the number of occurrences of a message
-, we hypothesize order may matter; (3) most importantly, their visualizations are more primitive. We
-believe the idea of near-infinite zoom (where the most detailed layer essentially shows the
-information in the actual log, and as you zoom out, more and more information is aggregated) will
-allow a user to explore the system state rapidly.
+\section{Conclusions and Future Work}
 
-What we want to point out in this paper is that along with our project there is a direction of
-visualization research that can ultimately help system administrators to monitor and analyze the
-status of a large distributed system. We think this will become more and more important as the trend
-of technology emphasizes on parallelism and distributed system such as cloud computing.
+We have presented a system for visualizing arbitrary log files.
+The log files are automatically and distributedly parsed, features are computed per node, and the results are visualized in an easy-to-use web interface.
+We cluster similarly-performing nodes into a single visualization to abstract away redundant data, if the user desires.
 
+The visualization has a spectrum of parameters.
+On one end of this spectrum, the raw log data is shown; on the other end, a single graph shows the most representative state of the system.
+The importance of this point is \emph{trustworthiness} of the visualization: no data is hidden from the user.
 
-\section{Future Work}
-% A description of how your system could be extended.}
+Our visualization is still extremely primitive.
+Users may have no intuition as to why two clusters are separated.
+Displaying a cluster confidence may assist in telling the user when two clusters are not very different.
+On the other hand, if two clusters should be different (such as in the case of a 1\% slowdown of a node), we would want to tell the user more information about why they were clustered differently.
+As is, it would be very hard for a user to notice a 1\% slowdown in a node.
 
-We believe automatically determining plot type would be a good improvement for our system because
-data extracted from raw log messages can be arbitrary and it is hard to be predetermined by an user.
-Also, we want to extend our system to online and real-time analysis and implement more intelligent
-features preprocessing. Lastly, it would be great if our system can cluster logs based on more
-elaborate features.
+We would like to compute more elaborate features for the clustering, including higher-order statistics.
+However, as the feature complexity increases, the interactivity decreases.
+Finding a middle-ground between interactivity and complexity is an open problem which we are not sure how to address.
+
+Finally, we would need a more thorough evaluation of our visualization.
+Some questions we have are:
+\begin{enumerate}
+    \item is a scatterplot the best visualization choice?
+    \item are we able to successfully segregate other types of anomalies in different clusters?
+    \item can multiple messages be aggregated into the same plot?
+\end{enumerate}
+
+There is a lot to be desired before our system is usable in the wild.
+We believe we have taken a major step in the right direction by providing the user with tools to explore the raw log data, rather than trying to predict what they would like to know.
 
 \section*{Acknowledgements}
-The authors would like to thank Ling Huang for helpful discussions and Sean Arietta for providing us with the log data gathered from his research project.
+The authors would like to thank Ling Huang for helpful discussions and insight into the structure of log files,
+Sean Arietta for providing us with the log data gathered from his research project,
+and John Kubiatowicz and Anthony Joseph for their guidance throughout this project.
+Adrien Truielle at Carnegie Mellon University provided the desktop machine on which we ran our experiments.
 
 
 \bibliographystyle{style/acmsiggraph}
