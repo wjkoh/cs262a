@@ -63,7 +63,7 @@ To this end, our system contributes the following features:
 \item \textbf{interactive}: the user can adjust the paramaters of the visualization at interactive speeds.
 \end{enumerate}
 
-With a large enough cluster, this will require focusing the user’s attention on “interesting” parts
+With a large enough cluster, this will require focusing the user's attention on “interesting” parts
 of the system state. This will require detecting anomalies, which in turn requires a
 constantly-evolving model of what the “normal” state of the system is.
 
@@ -100,7 +100,7 @@ See Figure~\ref{fig:ganglia} for a screenshot of the amount of data shown for a 
 \footnotetext{\url{http://oss.oetiker.ch/rrdtool/gallery/index.en.html}}
 
 Munin, based on RRDtool, is similar to Ganglia: after installation on each node, it automatically presents a visualization of the system status~\cite{Oetiker99}.
-As is evident from Figure~\ref{fig:rrdtool}, the visualizations is extremely dense and illegible as the number of nodes increase.
+As is evident from Figure~\ref{fig:rrdtool}, the visualization is extremely dense and illegible as the number of nodes increases.
 
 We use ideas from these system state visualizations, and apply them to system logs.
 We also recognize that viewing all logs makes an illegible visualization, viewing one node at a time is inefficient, and aggregating all nodes into a single server status hides any anomalous behavior.
@@ -134,7 +134,7 @@ Our algorithm can be summarized as follows:
 
 \begin{enumerate}
     \item Compute per-node features
-    \item Perform distributed k-means clustering
+    \item Perform $k$-means clustering
     \item Display interactive visualization
 \end{enumerate}
 
@@ -161,13 +161,13 @@ In a given time window, we compute the:
 These would indicate anomalies involving, for example, a diverging residual in a machine learning application, a section of code which takes too long to run, and a message which keeps working on the same file rather than working on new files.
 
 \subsection{Clustering}
-We perform k-means clustering in the feature vector space~\cite{kmeans,Lloyd82}.
+We perform $k$-means clustering in the feature vector space~\cite{kmeans,Lloyd82}.
 With a small number of nodes (on the order of tens), the clustering can be performed on a single machine quickly.
-On more nodes, a distributed $k$-means algorithm is required, which can either be exact~\cite{jin2006fast} or approximate and slower~\cite{kanungo2002local}.
+On more nodes, a distributed $k$-means algorithm is required, which can either be exact and slower~\cite{jin2006fast} or approximate~\cite{kanungo2002local}.
 Since the clustering will occur each time the user updates the parameters of the visualization, it is essential that it is fast.
 
 Once the desired number of centroids are found, we compute the node which is closest to the centroid in a least-squares sense and display only that node.
-Therefore, thhe visualization master server need only receive $O(k)$ data to pass on to the user, linear with the number of centroids, instead of with the total number of nodes.
+Therefore, the visualization master server need only receive $O(k)$ data to pass on to the user, linear with the number of centroids, instead of with the total number of nodes.
 
 \subsection{Visualization}
 The master server collects the data from each node and uses an HTTP Apache Server to pass the data on to the client.
@@ -232,7 +232,7 @@ We formally evaluate the other two axes here.
 
 \subsection{Anomaly Detection}
 \label{subsec:results:anomaly}
-The metric of success for anomaly detection is as follow: assuming only one node is anomalous, how many clusters are required until that node is in its own cluster?
+The metric of success for anomaly detection is as follows: assuming only one node is anomalous, how many clusters are required until that node is in its own cluster?
 The best-case scenario is two clusters: one for each of the $n-1$ well-performing nodes, and another for the anomalous node.
 
 We simulate five experiments on a seven node cluster using six nodes of real data and one node of simulated anomalous data.
@@ -257,7 +257,7 @@ Half of the messages in each log file are random, both in time and in value. One
 \item
 \textbf{99\% of log is junk}
 
-Only one out of every hundred messages is real. One node is still 5\% slower. Can the anomalous node be detected? Note that the filesize here is bloated to 100 times the actual log data.
+Only one out of every hundred messages is real. One node is still 5\% slower. Can the anomalous node be detected? Note that the file size here is bloated to 100 times the actual log data.
 \end{enumerate}
 
 Figure~\ref{fig:anomaly} shows the performance of our clustering on each of the above tests.
@@ -273,7 +273,7 @@ We assume these cases are rare, and are satisfied with successfully clustering a
 \end{figure}
 
 We would like to eventually compare our algorithm with the results of Xu and collaborators \cite{Xu09}.
-Unfortunately, all of their results used private proprietary logs, so we could not do a direct comparison.
+Unfortunately, all of their results used private and proprietary logs, so we could not do a direct comparison.
 
 \subsection{Timing}
 \label{subsec:results:timing}
@@ -283,12 +283,12 @@ The visualization was served to the client via an HTTP server, and all javascrip
 
 Figure~\ref{fig:timings} shows basic timing information of our system.
 From this, it is clear that the per-node cost is small: less than two seconds to compute features per-node.
-This data is then passed on to the master node, which preprocesses everything and prepares to send it to the client via HTTP.
 This preprocessing is the bottleneck in our unoptimized implementation.
-Finally, when the user changes the parameters with the web interface, the k-means clustering is recomputed at interactive rates.
+After the distributed preprocessing this data is then passed on to the master node, which prepares to send it to the client via HTTP.
+Finally, when the user changes the parameters with the web interface, the $k$-means clustering is recomputed at interactive rates.
 
 When the number of nodes increases to 100, and the number of log messages to 50 million, we are still able to run the clustering in 2.1 seconds on a single thread.
-We have not found it necessary to use distributed or approximate k-means clustering, but if the number of nodes increases, it will be worthwhile to use a sublinear k-means algorithm.
+We have not found it necessary to use distributed or approximate $k$-means clustering, but if the number of nodes increases, it will be worthwhile to use a sublinear $k$-means algorithm.
 
 \begin{figure}[t]
     \centering
