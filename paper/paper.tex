@@ -33,11 +33,9 @@ Even with current regular expression matchers such as \texttt{grep}, the amount 
 We augment \texttt{grep} with a visualization of the matched patterns.
 To further reduce the amount of information displayed, we cluster similarly-performing nodes and only show a single node representative of the entire cluster.
 The user can then interactively search the log, zoom in on a certain time window, and choose the number of clusters.
-%This means that at the most ``zoomed out'' state (no time window specified, no search patters, and no clustering), the raw log data is displayed.
 Our simulations show that our clustering is effective and our system is fast:
 the clustering successfully isolates anomalously-performing nodes in a variety of situations;
-the visualization can interactively visualize hundreds of millions of log messages across a hundred nodes in real-time.
-TODO: Get the numbers from this simulation.
+the visualization can interactively visualize hundreds of millions of log messages across a hundred nodes at interactive rates.
 
 \end{abstract}
 
@@ -125,7 +123,8 @@ They include no machine learning or reduction of the amount of data shown, other
 
 Makanju and collaborators present spatio-temporal clustering of log data as well \cite{makanju2012spatio}.
 Their method does not seem to be, nor claim to be, interactive.
-We find their clustering method and features to be complementary to ours, and it would fit cleanly in our interactive system.
+Finally, Saganowski and collaborators present a statistical method for preprocessing features that will be used in anomaly detection \cite{preprocessor}.
+We find that these two methods for clustering, feature extraction, and feature preprocessing to be complementary to ours, and it would fit cleanly in our interactive system.
 
 \section{Methods}
 
@@ -286,7 +285,10 @@ Figure~\ref{fig:timings} shows basic timing information of our system.
 From this, it is clear that the per-node cost is small: less than two seconds to compute features per-node.
 This data is then passed on to the master node, which preprocesses everything and prepares to send it to the client via HTTP.
 This preprocessing is the bottleneck in our unoptimized implementation.
-Finally, when the user changes the parameters with the web interface, recomputing the clusters takes an average of $.2$ seconds.
+Finally, when the user changes the parameters with the web interface, the k-means clustering is recomputed at interactive rates.
+
+When the number of nodes increases to 100, and the number of log messages to 50 million, we are still able to run the clustering in 2.1 seconds on a single thread.
+We have not found it necessary to use distributed or approximate k-means clustering, but if the number of nodes increases, it will be worthwhile to use a sublinear k-means algorithm.
 
 \begin{figure}[t]
     \centering
